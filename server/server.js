@@ -7,6 +7,8 @@ const corsMiddleware = require('./middleware/cors');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+app.set('trust proxy', true);
+
 app.use(helmet());
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
@@ -26,13 +28,10 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// API Routes
 app.use('/api/auth', require('./api/auth'));
 app.use('/api/contact', require('./api/contact'));
 app.use('/api/portfolio', require('./api/portfolio'));
-app.use('/api/backend', require('./api/backend'));
 
-// Error handlers
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
     res.status(500).json({ 
@@ -48,7 +47,6 @@ app.use((req, res) => {
 const server = app.listen(PORT, () => {
     console.log(`🚀 API Server running on port ${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/health`);
-    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 process.on('SIGTERM', () => {

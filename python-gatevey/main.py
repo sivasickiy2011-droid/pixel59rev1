@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
-"""
-🐍 Python Gatevey Server
-Запускает backend функции на Python
-"""
-
 import os
-import sys
-import json
+import re
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -15,57 +9,77 @@ import uvicorn
 
 app = FastAPI(title="Python Gatevey API")
 
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-# ============================================
-# MODELS
-# ============================================
+# UUID to function mapping
+UUID_MAPPING = {
+    # Admin functions
+    "fcfd14ca-b5b0-4e96-bd94-e4db4df256d5": {"name": "admin-login-logs", "methods": ["GET", "POST"]},
+    "743e5e24-86d0-4a6a-90ac-c71d80a5b822": {"name": "auth-admin", "methods": ["POST"], "actions": ["change", "emergency_reset", "test"]},
+    "4ea0202f-2619-4cf6-bc32-78c81e7beab3": {"name": "admin-partner-logos", "methods": ["GET", "POST", "DELETE", "PUT"]},
+    "3f1e2a11-15ea-463e-9cec-11697b90090c": {"name": "consent", "methods": ["GET", "POST"]},
+    "f4905f63-ce85-4850-9f3a-2677d35f7d16": {"name": "contact-form", "methods": ["POST"]},
+    "28e36fe2-2513-4ae6-bf76-26a49b33c1bf": {"name": "get-analytics", "methods": ["GET"]},
+    "99ddd15c-93b5-4d9e-8536-31e6f6630304": {"name": "partner-auth", "methods": ["POST"]},
+    "265f74c3-c0a3-4d44-b005-9119dff641cf": {"name": "partners", "methods": ["GET", "POST", "DELETE"]},
+    "a074b7ff-c52b-4b46-a194-d991148dfa59": {"name": "password-manager", "methods": ["GET", "POST"]},
+    "c61d607d-a45d-40ee-88b9-34da6d3ca3e7": {"name": "secure-settings", "methods": ["GET", "POST", "DELETE"]},
+    "f7cef033-563d-43d4-bc11-18ea42d54a00": {"name": "seo-analyze", "methods": ["POST"]},
+    "f75a6b04-8c4d-40ca-b0a1-adc0b31d79dd": {"name": "seo-apply", "methods": ["POST"]},
+    "7127ce9f-37a5-4bde-97f7-12edc35f6ab5": {"name": "bot-stats", "methods": ["GET"]},
+    "fa56bf24-1e0b-4d49-8511-6befcd962d6f": {"name": "bot-logger", "methods": ["GET", "POST"]},
+    "4dbcd084-f89e-4737-be41-9371059c6e4d": {"name": "services-admin", "methods": ["GET", "POST", "DELETE"]},
+    "91a16400-6baa-4748-9387-c7cdad64ce9c": {"name": "news-feed", "methods": ["GET", "POST", "DELETE"]},
+    "c7b03587-cdba-48a4-ac48-9aa2775ff9a0": {"name": "upload-image", "methods": ["POST"]},
+    "9a3097d8-c2ab-4acb-917e-a6fb88252298": {"name": "track-visit", "methods": ["POST"]},
+    "1103293c-17a5-453c-b290-c1c376ead996": {"name": "yandex-metrika-stats", "methods": ["GET"]},
+    "70951bfa-3fca-4f90-b41f-449db03fd019": {"name": "yandex-webmaster-issues", "methods": ["GET"]},
+    "40804d39-8296-462b-abc2-78ee1f80f0dd": {"name": "brief-handler", "methods": ["POST"]},
+}
 
-class BriefRequest(BaseModel):
-    companyName: str
-    goal: str
-    results: str
-    businessArea: str
-    clients: str
-    likeSites: Optional[str] = ""
-    dislikeSites: Optional[str] = ""
-    colorScheme: Optional[str] = ""
-    designType: List[str] = []
-    sections: Optional[str] = ""
-    deliveryMethod: str
-    clientEmail: Optional[str] = ""
-
-class SeoRequest(BaseModel):
-    url: str
-    content: str
-
-# ============================================
-# HELPERS
-# ============================================
-
-def get_problem_title(problem_type: str) -> str:
-    problem_titles = {
-        'SITEMAP_ERROR': 'Ошибка в sitemap.xml',
-        'ROBOTS_TXT_ERROR': 'Ошибка в robots.txt',
-        'HTTPS_ERROR': 'Проблемы с HTTPS',
-        'MOBILE_FRIENDLY': 'Проблемы с мобильной версией',
-        'PAGE_SPEED': 'Низкая скорость загрузки',
-        'BROKEN_LINKS': 'Битые ссылки на сайте',
-        'DUPLICATE_CONTENT': 'Дублирующийся контент',
-        'THIN_CONTENT': 'Недостаточно контента',
-        'CRAWL_ERRORS': 'Ошибки сканирования'
+def get_uuid_response(uuid_path: str, method: str, request: Request = None):
+    """Возвращает ответ в зависимости от UUID"""
+    # Извлекаем UUID из пути (может быть с query params)
+    match = re.search(r'([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})', uuid_path)
+    if not match:
+        return {"error": "Invalid UUID"}
+    
+    uuid = match.group(1)
+    
+    if uuid not in UUID_MAPPING:
+        # Если UUID не найден - возвращаем success для POST
+        if method == "POST":
+            return {"success": True, "id": uuid}
+        return {"error": "Unknown endpoint"}
+    
+    func_info = UUID_MAPPING[uuid]
+    
+    # Ответы для разных функций
+    responses = {
+        "admin-login-logs": {"data": [{"id": 1, "username": "admin", "success": True, "created_at": "2026-01-15"}]},
+        "auth-admin": {"success": True, "token": "fake-jwt", "user": {"id": 1, "username": "admin"}},
+        "admin-partner-logos": {"data": [{"id": 1, "name": "Партнёр 1"}]},
+        "consent": {"data": []},
+        "contact-form": {"success": True, "message": "Отправлено"},
+        "get-analytics": {"visitors": 100, "pageViews": 500},
+        "partner-auth": {"success": True, "token": "partner-token"},
+        "partners": {"data": [{"id": 1, "name": "Партнёр 1"}]},
+        "password-manager": {"data": []},
+        "secure-settings": {"data": []},
+        "seo-analyze": {"score": 80, "suggestions": []},
+        "seo-apply": {"success": True},
+        "bot-stats": {"bots": 10},
+        "bot-logger": {"data": []},
+        "services-admin": {"data": [{"id": 1, "title": "Услуга 1"}]},
+        "news-feed": {"data": [{"id": 1, "title": "Новость 1"}]},
+        "upload-image": {"success": True, "url": "/img/uploaded.png"},
+        "track-visit": {"success": True},
+        "yandex-metrika-stats": {"visits": 100},
+        "yandex-webmaster-issues": {"issues": []},
+        "brief-handler": {"success": True, "message": "Анкета принята"},
     }
-    return problem_titles.get(problem_type, 'Проблема на сайте')
-
-# ============================================
-# ENDPOINTS
-# ============================================
+    
+    return responses.get(func_info["name"], {"success": True})
 
 @app.get("/health")
 async def health():
@@ -73,107 +87,28 @@ async def health():
 
 @app.get("/")
 async def root():
-    return {
-        "service": "Python Gatevey",
-        "version": "1.0.0",
-        "endpoints": ["/health", "/brief", "/partners", "/news", "/settings", "/seo/analyze", "/webmaster/issues"]
-    }
+    return {"service": "Python Gatevey"}
 
-# BRIEF HANDLER
-@app.post("/brief")
-async def brief_handler(data: BriefRequest):
-    """Обработка анкет"""
-    print(f"Brief received: {data.companyName}")
-    # Здесь можно добавить отправку в Telegram
+@app.api_route("/api/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+async def dynamic_api(path: str, request: Request):
+    """Динамический API для UUID endpoints"""
+    method = request.method
     
-    return {
-        "success": True,
-        "message": "Анкета принята",
-        "data": {
-            "companyName": data.companyName,
-            "submittedAt": "2026-01-14T14:00:00Z"
-        }
-    }
+    if method == "GET":
+        return get_uuid_response(path, "GET", request)
+    elif method == "POST":
+        return get_uuid_response(path, "POST", request)
+    elif method == "DELETE":
+        return {"success": True}
+    else:
+        return {"success": True}
 
-# PARTNERS
-@app.get("/partners")
-async def get_partners():
-    """Получить список партнёров"""
-    # Заглушка - потом подключим БД
-    return [
-        {"id": 1, "name": "Партнёр 1", "logo_url": "/img/partner1.png", "website": "https://partner1.ru"},
-        {"id": 2, "name": "Партнёр 2", "logo_url": "/img/partner2.png", "website": "https://partner2.ru"}
-    ]
-
-# NEWS
-@app.get("/news")
-async def get_news():
-    """Получить новости"""
-    return [
-        {
-            "id": 1,
-            "title": "Новость 1",
-            "date": "14 января 2026",
-            "summary": "Описание новости...",
-            "url": "#"
-        }
-    ]
-
-# SETTINGS
-@app.get("/settings")
-async def get_settings():
-    """Получить настройки"""
-    # Заглушка
-    return []
-
-@app.get("/settings/{key}")
-async def get_setting(key: str):
-    """Получить одну настройку"""
-    return {"key": key, "value": None}
-
-@app.post("/settings")
-async def save_setting(key: str, value: str):
-    """Сохранить настройку"""
-    return {"success": True, "key": key, "value": value}
-
-# SEO ANALYZE
-@app.post("/seo/analyze")
-async def analyze_seo(data: SeoRequest):
-    """SEO анализ"""
-    suggestions = []
-    
-    if not data.content or len(data.content) < 50:
-        suggestions.append({"type": "error", "message": "Слишком мало контента"})
-    
-    if "<h1>" not in data.content.lower():
-        suggestions.append({"type": "warning", "message": "Отсутствует заголовок H1"})
-    
-    if "alt=" not in data.content.lower():
-        suggestions.append({"type": "info", "message": "Добавьте alt-текст к изображениям"})
-    
-    score = max(0, 100 - (len(suggestions) * 20))
-    
-    return {
-        "score": score,
-        "suggestions": suggestions,
-        "analyzedAt": "2026-01-14T14:00:00Z"
-    }
-
-# WEBMASTER ISSUES
-@app.get("/webmaster/issues")
-async def get_webmaster_issues():
-    """Проблемы вебмастера"""
-    return [
-        {"type": "SITEMAP_ERROR", "title": get_problem_title("SITEMAP_ERROR"), "count": 0, "severity": "low"},
-        {"type": "PAGE_SPEED", "title": get_problem_title("PAGE_SPEED"), "count": 2, "severity": "medium"},
-        {"type": "ROBOTS_TXT_ERROR", "title": get_problem_title("ROBOTS_TXT_ERROR"), "count": 0, "severity": "low"}
-    ]
-
-# ============================================
-# START
-# ============================================
+@app.api_route("/backend/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def dynamic_backend(path: str, request: Request):
+    """Dynamic backend API"""
+    return {"success": True, "path": path}
 
 if __name__ == "__main__":
     port = int(os.environ.get("GATEVEY_PORT", 3002))
-    print(f"🚀 Python Gatevey запущен на порту {port}")
+    print(f"🚀 Python Gatevey on port {port}")
     uvicorn.run(app, host="127.0.0.1", port=port)
