@@ -1,0 +1,36 @@
+{
+  "tests": [
+    {
+      "name": "Test order submission",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "Origin": "https://centerai.tech"
+      },
+      "body": {
+        "total": 150000,
+        "services": [
+          "Лендинг под ключ",
+          "SEO-оптимизация"
+        ],
+        "isPartner": true,
+        "discount": 40,
+        "name": "Иван Петров",
+        "phone": "+7 900 123-45-67",
+        "email": "test@example.com"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "message": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test OPTIONS for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}

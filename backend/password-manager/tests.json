@@ -1,0 +1,32 @@
+{
+  "tests": [
+    {
+      "name": "Test emergency reset",
+      "method": "POST",
+      "path": "/?action=emergency_reset",
+      "body": {
+        "new_password": "NewSecure123"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "new_hash": "string",
+        "instructions": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test password validation failure",
+      "method": "POST",
+      "path": "/?action=emergency_reset",
+      "body": {
+        "new_password": "short"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "Password must be at least 8 characters"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

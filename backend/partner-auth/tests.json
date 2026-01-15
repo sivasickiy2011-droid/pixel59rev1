@@ -1,0 +1,31 @@
+{
+  "tests": [
+    {
+      "name": "Auth with valid credentials",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "login": "partner",
+        "password": "partner2024"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "id": "number",
+        "login": "string",
+        "name": "string",
+        "discount_percent": "number"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Auth with invalid credentials",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "login": "wrong",
+        "password": "wrong"
+      },
+      "expectedStatus": 401
+    }
+  ]
+}

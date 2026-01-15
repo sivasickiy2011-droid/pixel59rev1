@@ -1,0 +1,63 @@
+{
+  "tests": [
+    {
+      "name": "POST - Save consent with full data",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "fullName": "Иванов Иван Иванович",
+        "phone": "+7 999 123-45-67",
+        "email": "test@example.com",
+        "cookies": true,
+        "terms": true,
+        "privacy": true
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "POST - Save consent without optional fields",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "fullName": "Петров Петр",
+        "cookies": true,
+        "terms": false,
+        "privacy": true
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "POST - Reject without full name",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "phone": "+7 999 123-45-67",
+        "cookies": true
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET - Retrieve consents list",
+      "method": "GET",
+      "expectedStatus": 200
+    }
+  ]
+}

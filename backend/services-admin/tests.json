@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "Get all services",
+      "method": "GET",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "services": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get services by category",
+      "method": "GET",
+      "queryParams": {
+        "category": "development"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "services": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

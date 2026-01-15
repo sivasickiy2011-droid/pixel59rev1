@@ -1,0 +1,20 @@
+{
+  "tests": [
+    {
+      "name": "Test get webmaster issues",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "issues": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test OPTIONS for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}

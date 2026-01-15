@@ -1,0 +1,38 @@
+{
+  "tests": [
+    {
+      "name": "Test Data URI upload",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "image": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+        "filename": "test.png",
+        "storage_type": "data_uri"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "url": "string",
+        "type": "data_uri"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test S3 upload with folder",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "image": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+        "filename": "portfolio.jpg",
+        "storage_type": "s3",
+        "folder": "portfolio"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "url": "string",
+        "filename": "string",
+        "type": "s3"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

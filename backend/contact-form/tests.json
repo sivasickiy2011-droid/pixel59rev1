@@ -1,0 +1,31 @@
+{
+  "tests": [
+    {
+      "name": "Handle OPTIONS request",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": ""
+    },
+    {
+      "name": "Submit contact form",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "Origin": "https://centerai.tech"
+      },
+      "body": {
+        "name": "Иван Иванов",
+        "phone": "+7 999 123-45-67",
+        "type": "contact_form",
+        "timestamp": "2025-11-05T10:30:00Z"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "message": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

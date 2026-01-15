@@ -1,0 +1,21 @@
+{
+  "tests": [
+    {
+      "name": "Get analytics for 14 days",
+      "method": "GET",
+      "path": "/?days=14",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "visits": "array",
+        "today": {
+          "visits": "number",
+          "unique": "number"
+        },
+        "topPages": "array",
+        "devices": "array",
+        "browsers": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

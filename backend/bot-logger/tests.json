@@ -1,0 +1,37 @@
+{
+  "tests": [
+    {
+      "name": "Log blocked bot",
+      "method": "POST",
+      "body": {
+        "user_agent": "Mozilla/5.0 (compatible; BadBot/1.0)",
+        "is_blocked": true
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "is_blocked": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Log allowed bot",
+      "method": "POST",
+      "body": {
+        "user_agent": "Mozilla/5.0 (compatible; Googlebot/2.1)",
+        "is_blocked": false
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "is_blocked": false
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Handle OPTIONS",
+      "method": "OPTIONS",
+      "expectedStatus": 200
+    }
+  ]
+}

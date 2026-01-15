@@ -1,0 +1,20 @@
+{
+  "tests": [
+    {
+      "name": "Get news feed",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "news": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Handle CORS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}

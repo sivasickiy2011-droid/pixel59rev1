@@ -1,0 +1,30 @@
+{
+  "tests": [
+    {
+      "name": "Test SEO analysis with valid content",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "url": "https://example.com/test-page",
+        "content": "Это тестовая страница о веб-разработке. Мы создаем современные сайты с использованием React и TypeScript. Наша команда специализируется на frontend разработке.",
+        "current_title": "Тестовая страница",
+        "current_description": "Описание страницы"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "title": "string",
+        "description": "string",
+        "h1_suggestions": ["string"],
+        "keywords": ["string"],
+        "improvements": ["string"]
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test OPTIONS for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}

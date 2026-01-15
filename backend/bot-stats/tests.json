@@ -1,0 +1,23 @@
+{
+  "tests": [
+    {
+      "name": "Get bot statistics and logs",
+      "method": "GET",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "stats": {
+          "total_attempts": "number",
+          "blocked_count": "number",
+          "allowed_count": "number"
+        },
+        "logs": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Handle OPTIONS",
+      "method": "OPTIONS",
+      "expectedStatus": 200
+    }
+  ]
+}

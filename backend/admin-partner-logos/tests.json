@@ -1,0 +1,33 @@
+{
+  "tests": [
+    {
+      "name": "Get all partner logos",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": [
+        {
+          "id": 1
+        }
+      ],
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create new partner logo",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "name": "Test Partner",
+        "logo_url": "https://example.com/logo.png",
+        "website_url": "https://example.com",
+        "display_order": 10
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "name": "Test Partner",
+        "logo_url": "https://example.com/logo.png"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

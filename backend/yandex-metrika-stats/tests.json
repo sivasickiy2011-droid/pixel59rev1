@@ -1,0 +1,41 @@
+{
+  "tests": [
+    {
+      "name": "Missing counter_id",
+      "method": "POST",
+      "body": {
+        "token": "test_token"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Missing token",
+      "method": "POST",
+      "body": {
+        "counter_id": "101026698"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Valid request with counter_id and token",
+      "method": "POST",
+      "body": {
+        "counter_id": "101026698",
+        "token": "test_token_abc123"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "visits": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

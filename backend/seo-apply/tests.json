@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "Test SEO application with valid data",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "page_path": "/",
+        "title": "Тестовый заголовок страницы",
+        "description": "Тестовое описание страницы для SEO оптимизации",
+        "keywords": ["веб-разработка", "seo", "оптимизация"]
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "html_content": "string",
+        "applied_title": "Тестовый заголовок страницы",
+        "applied_description": "Тестовое описание страницы для SEO оптимизации"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test OPTIONS for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}

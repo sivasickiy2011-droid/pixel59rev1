@@ -1,0 +1,32 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS request for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET login logs",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "logs": "array",
+        "stats": "object",
+        "pagination": "object"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET with pagination",
+      "method": "GET",
+      "path": "/?limit=10&offset=0",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "logs": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

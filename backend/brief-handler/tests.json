@@ -1,0 +1,31 @@
+{
+  "tests": [
+    {
+      "name": "Test brief form submission with email delivery",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "Origin": "https://centerai.tech"
+      },
+      "body": {
+        "companyName": "ООО Тестовая компания",
+        "goal": "Создание корпоративного сайта",
+        "results": "Увеличение продаж на 30%",
+        "businessArea": "Производство промышленного оборудования",
+        "clients": "B2B клиенты, возраст 30-50 лет",
+        "likeSites": "example.com - минималистичный дизайн",
+        "dislikeSites": "competitor.com - перегружен",
+        "colorScheme": "Синий и белый",
+        "designType": ["corporate"],
+        "sections": "О компании, Каталог, Контакты",
+        "deliveryMethod": "email",
+        "clientEmail": "test@example.com"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
