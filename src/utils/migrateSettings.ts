@@ -137,7 +137,7 @@ export async function migrateSettingsToVault() {
   const results = await Promise.allSettled(
     migratedSettings.map(async setting => {
       console.log(`Migrating: ${setting.key}`);
-      const response = await fetch('/api/fa56bf24-1e0b-4d49-8511-6befcd962d6f', {
+      const response = await fetch('/pyapi/fa56bf24-1e0b-4d49-8511-6befcd962d6f', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

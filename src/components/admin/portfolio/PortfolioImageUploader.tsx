@@ -1,6 +1,6 @@
 import { PortfolioProject } from './types';
 
-const UPLOAD_URL = '/api/6f0735b1-7477-4660-b2b0-0b694b4f36ea';
+const UPLOAD_URL = '/pyapi/6f0735b1-7477-4660-b2b0-0b694b4f36ea';
 
 interface UploadImageParams {
   file: File;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const API_URL = '/api/fa56bf24-1e0b-4d49-8511-6befcd962d6f';
+const API_URL = '/pyapi/fa56bf24-1e0b-4d49-8511-6befcd962d6f';
 
 interface SecureSetting {
   id: number;

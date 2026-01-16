@@ -16,7 +16,7 @@ const PartnersCarousel = () => {
   useEffect(() => {
     const fetchPartners = async () => {
       try {
-        const response = await fetch('/api/c7b03587-cdba-48a4-ac48-9aa2775ff9a0');
+        const response = await fetch('/pyapi/c7b03587-cdba-48a4-ac48-9aa2775ff9a0');
         if (response.ok) {
           const data = await response.json();
           console.log('Partners loaded:', data.length, 'partners');

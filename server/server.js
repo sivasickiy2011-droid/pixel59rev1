@@ -31,6 +31,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', require('./api/auth'));
 app.use('/api/contact', require('./api/contact'));
 app.use('/api/portfolio', require('./api/portfolio'));
+app.use('/api/partners', require('./api/partners'));
 
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);

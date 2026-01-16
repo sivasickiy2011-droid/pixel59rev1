@@ -29,7 +29,7 @@ const Portfolio = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await fetch('/api/99ddd15c-93b5-4d9e-8536-31e6f6630304');
+        const response = await fetch('/pyapi/99ddd15c-93b5-4d9e-8536-31e6f6630304');
         if (response.ok) {
           const data = await response.json();
           setProjects(data);

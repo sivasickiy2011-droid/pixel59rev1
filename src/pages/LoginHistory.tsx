@@ -37,7 +37,7 @@ const LoginHistory = ({ isEmbedded = false }: LoginHistoryProps) => {
   const { data, isLoading } = useQuery<LoginLogsResponse>({
     queryKey: ['admin-login-logs'],
     queryFn: async () => {
-      const response = await fetch('/api/4ea0202f-2619-4cf6-bc32-78c81e7beab3');
+      const response = await fetch('/pyapi/4ea0202f-2619-4cf6-bc32-78c81e7beab3');
       if (!response.ok) throw new Error('Failed to fetch login logs');
       return response.json();
     },

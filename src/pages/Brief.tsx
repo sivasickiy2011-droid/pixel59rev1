@@ -41,7 +41,7 @@ const Brief = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/28e36fe2-2513-4ae6-bf76-26a49b33c1bf', {
+      const response = await fetch('/pyapi/28e36fe2-2513-4ae6-bf76-26a49b33c1bf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -66,7 +66,7 @@ const LogoAdmin = ({ isEmbedded = false }: LogoAdminProps) => {
         try {
           const base64String = reader.result as string;
           
-          const response = await fetch('/api/6f0735b1-7477-4660-b2b0-0b694b4f36ea', {
+          const response = await fetch('/pyapi/6f0735b1-7477-4660-b2b0-0b694b4f36ea', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

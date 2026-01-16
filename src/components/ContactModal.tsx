@@ -39,7 +39,7 @@ export default function ContactModal({ open, onOpenChange }: ContactModalProps) 
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/003b9991-d7d8-4f5d-8257-dee42fad0f91', {
+      const response = await fetch('/pyapi/003b9991-d7d8-4f5d-8257-dee42fad0f91', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

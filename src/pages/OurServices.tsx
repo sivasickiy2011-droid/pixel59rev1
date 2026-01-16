@@ -46,7 +46,7 @@ const OurServices = () => {
   useEffect(() => {
     const loadServices = async () => {
       try {
-        const response = await fetch('/api/91a16400-6baa-4748-9387-c7cdad64ce9c');
+        const response = await fetch('/pyapi/91a16400-6baa-4748-9387-c7cdad64ce9c');
         const data = await response.json();
         
         if (data.services) {

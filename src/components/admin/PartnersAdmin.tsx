@@ -39,7 +39,7 @@ const PartnersAdmin = () => {
 
   const fetchPartners = async () => {
     try {
-      const response = await fetch('/api/c7b03587-cdba-48a4-ac48-9aa2775ff9a0');
+      const response = await fetch('/pyapi/c7b03587-cdba-48a4-ac48-9aa2775ff9a0');
       if (response.ok) {
         const data = await response.json();
         setPartners(data);
@@ -59,7 +59,7 @@ const PartnersAdmin = () => {
 
   const handleAdd = async () => {
     try {
-      const response = await fetch('/api/c7b03587-cdba-48a4-ac48-9aa2775ff9a0', {
+      const response = await fetch('/pyapi/c7b03587-cdba-48a4-ac48-9aa2775ff9a0', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -94,7 +94,7 @@ const PartnersAdmin = () => {
       const partner = partners.find(p => p.id === id);
       if (!partner) return;
 
-      const response = await fetch('/api/c7b03587-cdba-48a4-ac48-9aa2775ff9a0', {
+      const response = await fetch('/pyapi/c7b03587-cdba-48a4-ac48-9aa2775ff9a0', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(partner)
@@ -121,7 +121,7 @@ const PartnersAdmin = () => {
     if (!confirm('Удалить партнёра?')) return;
 
     try {
-      const response = await fetch(`/api/c7b03587-cdba-48a4-ac48-9aa2775ff9a0?id=${id}`, {
+      const response = await fetch(`/pyapi/c7b03587-cdba-48a4-ac48-9aa2775ff9a0?id=${id}`, {
         method: 'DELETE'
       });
 

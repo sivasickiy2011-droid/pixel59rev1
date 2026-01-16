@@ -23,7 +23,7 @@ export async function trackPageVisit(page: string) {
       isAdmin
     };
 
-    await fetch('/api/f4905f63-ce85-4850-9f3a-2677d35f7d16', {
+    await fetch('/pyapi/f4905f63-ce85-4850-9f3a-2677d35f7d16', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),

@@ -23,7 +23,7 @@ export default function EmergencyReset() {
     setResult(null);
 
     try {
-      const response = await fetch('/api/743e5e24-86d0-4a6a-90ac-c71d80a5b822?action=emergency_reset', {
+      const response = await fetch('/pyapi/743e5e24-86d0-4a6a-90ac-c71d80a5b822?action=emergency_reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ new_password: password })
@@ -59,7 +59,7 @@ export default function EmergencyReset() {
     setTestResult(null);
 
     try {
-      const response = await fetch('/api/743e5e24-86d0-4a6a-90ac-c71d80a5b822?action=test', {
+      const response = await fetch('/pyapi/743e5e24-86d0-4a6a-90ac-c71d80a5b822?action=test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: testPassword })
