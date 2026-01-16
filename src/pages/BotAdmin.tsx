@@ -38,7 +38,7 @@ const BotAdmin = ({ isEmbedded = false }: BotAdminProps) => {
   const { data, isLoading } = useQuery<BotStatsResponse>({
     queryKey: ['bot-stats'],
     queryFn: async () => {
-      const response = await fetch('/pyapi/f75a6b04-8c4d-40ca-b0a1-adc0b31d79dd');
+      const response = await fetch('/api/f75a6b04-8c4d-40ca-b0a1-adc0b31d79dd');
       if (!response.ok) throw new Error('Failed to fetch bot stats');
       return response.json();
     },

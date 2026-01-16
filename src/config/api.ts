@@ -1,5 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.pixel59.ru/api';
-const CDN_BASE_URL = import.meta.env.VITE_CDN_URL || 'https://cdn.pixel59.ru';
+// Используем относительный путь чтобы работал на любом домене
+const API_BASE_URL = '/api';
 
 export const API_ENDPOINTS = {
   auth: {
@@ -34,7 +34,5 @@ export const API_ENDPOINTS = {
     image: `${API_BASE_URL}/upload/image`,
   },
 };
-
-export const CDN_URL = CDN_BASE_URL;
 
 export default API_ENDPOINTS;

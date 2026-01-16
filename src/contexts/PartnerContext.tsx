@@ -33,7 +33,7 @@ export function PartnerProvider({ children }: { children: ReactNode }) {
 
   const login = async (loginValue: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch('/pyapi/a074b7ff-c52b-4b46-a194-d991148dfa59', {
+      const response = await fetch('/api/a074b7ff-c52b-4b46-a194-d991148dfa59', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -54,7 +54,7 @@ export default function OwnStatsTab() {
     setError('');
     
     try {
-      const response = await fetch('/pyapi/70951bfa-3fca-4f90-b41f-449db03fd019?days=14');
+      const response = await fetch('/api/70951bfa-3fca-4f90-b41f-449db03fd019?days=14');
       
       if (!response.ok) {
         throw new Error('Ошибка загрузки данных');

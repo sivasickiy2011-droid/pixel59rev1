@@ -85,7 +85,7 @@ export default function Analytics() {
     console.log('Loading visit data for counter:', settings.yandex_metrika_id);
     setLoadingVisits(true);
     try {
-      const response = await fetch('/pyapi/40804d39-8296-462b-abc2-78ee1f80f0dd', {
+      const response = await fetch('/api/40804d39-8296-462b-abc2-78ee1f80f0dd', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -116,7 +116,7 @@ export default function Analytics() {
   const loadWebmasterIssues = async () => {
     setLoadingIssues(true);
     try {
-      const response = await fetch('/pyapi/f7cef033-563d-43d4-bc11-18ea42d54a00', {
+      const response = await fetch('/api/f7cef033-563d-43d4-bc11-18ea42d54a00', {
         method: 'GET'
       });
 

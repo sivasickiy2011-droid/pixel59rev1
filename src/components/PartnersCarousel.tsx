@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { API_ENDPOINTS } from '../config/api';
 
 interface PartnerLogo {
   id: number;
@@ -16,11 +17,11 @@ const PartnersCarousel = () => {
   useEffect(() => {
     const fetchPartners = async () => {
       try {
-        const response = await fetch('/pyapi/c7b03587-cdba-48a4-ac48-9aa2775ff9a0');
+        const response = await fetch(API_ENDPOINTS.partners.list);
         if (response.ok) {
           const data = await response.json();
           console.log('Partners loaded:', data.length, 'partners');
-          console.log('First partner logo preview:', data[0]?.logo_url?.substring(0, 100));
+          console.log('First partner:', data[0]);
           setPartners(data);
         }
       } catch (error) {

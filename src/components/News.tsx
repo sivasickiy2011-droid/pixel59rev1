@@ -27,7 +27,7 @@ const News = () => {
     const fetchNews = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/pyapi/265f74c3-c0a3-4d44-b005-9119dff641cf');
+        const response = await fetch('/api/265f74c3-c0a3-4d44-b005-9119dff641cf');
         const data = await response.json();
         
         if (data.news && Array.isArray(data.news)) {

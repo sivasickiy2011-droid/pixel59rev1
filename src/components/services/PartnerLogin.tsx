@@ -25,7 +25,7 @@ export default function PartnerLogin() {
     // Проверка на админ-логин
     if (loginValue === 'suser') {
       try {
-        const response = await fetch('/pyapi/fcfd14ca-b5b0-4e96-bd94-e4db4df256d5', {
+        const response = await fetch('/api/fcfd14ca-b5b0-4e96-bd94-e4db4df256d5', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

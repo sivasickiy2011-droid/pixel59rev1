@@ -58,7 +58,7 @@ export default function Partners() {
       const adminAuth = localStorage.getItem('admin_auth');
       if (!adminAuth) return;
 
-      const response = await fetch('/pyapi/3f1e2a11-15ea-463e-9cec-11697b90090c', {
+      const response = await fetch('/api/3f1e2a11-15ea-463e-9cec-11697b90090c', {
         headers: {
           'X-Admin-Password': adminAuth
         }
@@ -83,8 +83,8 @@ export default function Partners() {
       if (!adminAuth) return;
 
       const url = editingPartner 
-        ? '/pyapi/3f1e2a11-15ea-463e-9cec-11697b90090c'
-        : '/pyapi/3f1e2a11-15ea-463e-9cec-11697b90090c';
+        ? '/api/3f1e2a11-15ea-463e-9cec-11697b90090c'
+        : '/api/3f1e2a11-15ea-463e-9cec-11697b90090c';
 
       const body = editingPartner 
         ? { ...formData, id: editingPartner.id }
@@ -135,7 +135,7 @@ export default function Partners() {
       const adminAuth = localStorage.getItem('admin_auth');
       if (!adminAuth) return;
 
-      const response = await fetch(`/pyapi/3f1e2a11-15ea-463e-9cec-11697b90090c?id=${id}`, {
+      const response = await fetch(`/api/3f1e2a11-15ea-463e-9cec-11697b90090c?id=${id}`, {
         method: 'DELETE',
         headers: {
           'X-Admin-Password': adminAuth

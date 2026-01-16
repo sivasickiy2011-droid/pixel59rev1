@@ -46,7 +46,7 @@ const PortfolioAdmin = () => {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch('/pyapi/99ddd15c-93b5-4d9e-8536-31e6f6630304');
+      const response = await fetch('/api/99ddd15c-93b5-4d9e-8536-31e6f6630304');
       if (response.ok) {
         const data = await response.json();
         setProjects(data);
@@ -80,7 +80,7 @@ const PortfolioAdmin = () => {
       try {
         await Promise.all(
           updates.map((project) =>
-            fetch('/pyapi/99ddd15c-93b5-4d9e-8536-31e6f6630304', {
+            fetch('/api/99ddd15c-93b5-4d9e-8536-31e6f6630304', {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(project),
@@ -105,7 +105,7 @@ const PortfolioAdmin = () => {
     const method = editingProject.id ? 'PUT' : 'POST';
     
     try {
-      const response = await fetch('/pyapi/99ddd15c-93b5-4d9e-8536-31e6f6630304', {
+      const response = await fetch('/api/99ddd15c-93b5-4d9e-8536-31e6f6630304', {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editingProject),
@@ -126,7 +126,7 @@ const PortfolioAdmin = () => {
     if (!confirm('Удалить проект?')) return;
 
     try {
-      const response = await fetch('/pyapi/99ddd15c-93b5-4d9e-8536-31e6f6630304', {
+      const response = await fetch('/api/99ddd15c-93b5-4d9e-8536-31e6f6630304', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
@@ -171,7 +171,7 @@ const PortfolioAdmin = () => {
 
     try {
       const deletePromises = Array.from(selectedProjects).map(id =>
-        fetch('/pyapi/99ddd15c-93b5-4d9e-8536-31e6f6630304', {
+        fetch('/api/99ddd15c-93b5-4d9e-8536-31e6f6630304', {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id }),

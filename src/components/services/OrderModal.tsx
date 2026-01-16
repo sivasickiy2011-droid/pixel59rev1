@@ -50,7 +50,7 @@ export default function OrderModal({ isOpen, onClose, total, services }: OrderMo
     setError('');
 
     try {
-      const response = await fetch('/pyapi/4dbcd084-f89e-4737-be41-9371059c6e4d', {
+      const response = await fetch('/api/4dbcd084-f89e-4737-be41-9371059c6e4d', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

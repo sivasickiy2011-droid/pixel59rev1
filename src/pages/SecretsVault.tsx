@@ -38,8 +38,8 @@ const SecretsVault = ({ isEmbedded = false }: SecretsVaultProps) => {
     try {
       const token = localStorage.getItem('admin_auth');
       const url = selectedCategory === 'all' 
-        ? '/pyapi/fa56bf24-1e0b-4d49-8511-6befcd962d6f'
-        : `/pyapi/fa56bf24-1e0b-4d49-8511-6befcd962d6f?category=${selectedCategory}`;
+        ? '/api/fa56bf24-1e0b-4d49-8511-6befcd962d6f'
+        : `/api/fa56bf24-1e0b-4d49-8511-6befcd962d6f?category=${selectedCategory}`;
       
       const response = await fetch(url, {
         headers: {
@@ -88,7 +88,7 @@ const SecretsVault = ({ isEmbedded = false }: SecretsVaultProps) => {
     setCopyingSecrets(true);
     try {
       const token = localStorage.getItem('admin_auth');
-      const response = await fetch('/pyapi/961bcfd3-a4a3-4d7e-b238-7d19be6f98e1', {
+      const response = await fetch('/api/961bcfd3-a4a3-4d7e-b238-7d19be6f98e1', {
         method: 'POST',
         headers: {
           'X-Admin-Token': token || ''
@@ -119,7 +119,7 @@ const SecretsVault = ({ isEmbedded = false }: SecretsVaultProps) => {
     setClearingCache(true);
     try {
       const token = localStorage.getItem('admin_auth');
-      const response = await fetch('/pyapi/f8daa3d3-22ba-4629-ac39-29eda98d18de', {
+      const response = await fetch('/api/f8daa3d3-22ba-4629-ac39-29eda98d18de', {
         method: 'POST',
         headers: {
           'X-Admin-Token': token || ''
@@ -152,7 +152,7 @@ const SecretsVault = ({ isEmbedded = false }: SecretsVaultProps) => {
       const token = localStorage.getItem('admin_auth');
       const method = editingId ? 'PUT' : 'POST';
       
-      const response = await fetch('/pyapi/fa56bf24-1e0b-4d49-8511-6befcd962d6f', {
+      const response = await fetch('/api/fa56bf24-1e0b-4d49-8511-6befcd962d6f', {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -184,7 +184,7 @@ const SecretsVault = ({ isEmbedded = false }: SecretsVaultProps) => {
 
     try {
       const token = localStorage.getItem('admin_auth');
-      const response = await fetch(`/pyapi/fa56bf24-1e0b-4d49-8511-6befcd962d6f?key=${key}`, {
+      const response = await fetch(`/api/fa56bf24-1e0b-4d49-8511-6befcd962d6f?key=${key}`, {
         method: 'DELETE',
         headers: {
           'X-Admin-Token': token || ''

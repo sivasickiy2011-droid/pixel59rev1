@@ -79,7 +79,7 @@ export default function SeoTab({ settings, setSettings }: SeoTabProps) {
     setAnalysisResult(null);
 
     try {
-      const response = await fetch('/pyapi/7127ce9f-37a5-4bde-97f7-12edc35f6ab5', {
+      const response = await fetch('/api/7127ce9f-37a5-4bde-97f7-12edc35f6ab5', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -123,7 +123,7 @@ export default function SeoTab({ settings, setSettings }: SeoTabProps) {
     setSuccess(null);
 
     try {
-      const response = await fetch('/pyapi/23efbca4-f3c3-48b8-afb7-a2e528bf68f9', {
+      const response = await fetch('/api/23efbca4-f3c3-48b8-afb7-a2e528bf68f9', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

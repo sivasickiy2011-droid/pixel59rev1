@@ -45,7 +45,7 @@ const CookieConsent = () => {
 
     try {
       if (privacy) {
-        const response = await fetch('/pyapi/80536dd3-4799-47a9-893a-a756a259460e', {
+        const response = await fetch('/api/80536dd3-4799-47a9-893a-a756a259460e', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

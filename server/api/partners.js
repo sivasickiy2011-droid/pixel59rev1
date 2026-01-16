@@ -2,20 +2,21 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
 
-// Получить всех партнёров
 router.get('/', async (req, res) => {
     try {
+        console.log('>>> PARTNERS: Запрос получен');
         const result = await pool.query(
             'SELECT * FROM partners WHERE is_active = true ORDER BY sort_order'
         );
+        console.log('>>> PARTNERS: Найдено', result.rows.length, 'партнёров');
+        console.log('>>> PARTNERS: Данные:', JSON.stringify(result.rows));
         res.json(result.rows);
     } catch (error) {
-        console.error('Partners error:', error);
+        console.error('>>> PARTNERS: Ошибка:', error);
         res.status(500).json({ error: 'Failed to fetch partners' });
     }
 });
 
-// Создать партнёра
 router.post('/', async (req, res) => {
     try {
         const { name, logo_url, website, sort_order } = req.body;
@@ -30,21 +31,17 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Обновить партнёра
 router.put('/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { name, logo_url, website, sort_order, is_active } = req.body;
-        
         const result = await pool.query(
             'UPDATE partners SET name = $1, logo_url = $2, website = $3, sort_order = $4, is_active = $5 WHERE id = $6 RETURNING *',
             [name, logo_url, website, sort_order, is_active, id]
         );
-        
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Partner not found' });
         }
-        
         res.json({ success: true, partner: result.rows[0] });
     } catch (error) {
         console.error('Update partner error:', error);
@@ -52,7 +49,6 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// Удалить партнёра
 router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;

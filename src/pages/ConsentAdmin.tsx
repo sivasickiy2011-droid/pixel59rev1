@@ -30,7 +30,7 @@ const ConsentAdmin = () => {
   const { data, isLoading } = useQuery<ConsentResponse>({
     queryKey: ['consents'],
     queryFn: async () => {
-      const response = await fetch('/pyapi/80536dd3-4799-47a9-893a-a756a259460e');
+      const response = await fetch('/api/80536dd3-4799-47a9-893a-a756a259460e');
       if (!response.ok) throw new Error('Failed to fetch consents');
       return response.json();
     },

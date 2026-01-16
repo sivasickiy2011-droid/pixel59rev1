@@ -40,7 +40,7 @@ const ChangePassword = ({ isEmbedded = false }: ChangePasswordProps) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/pyapi/743e5e24-86d0-4a6a-90ac-c71d80a5b822?action=change', {
+      const response = await fetch('/api/743e5e24-86d0-4a6a-90ac-c71d80a5b822?action=change', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -45,7 +45,7 @@ const ServicesAdmin = ({ isEmbedded = false }: ServicesAdminProps) => {
 
   const loadServices = async () => {
     try {
-      const response = await fetch('/pyapi/91a16400-6baa-4748-9387-c7cdad64ce9c');
+      const response = await fetch('/api/91a16400-6baa-4748-9387-c7cdad64ce9c');
 
       if (response.ok) {
         const data = await response.json();
@@ -66,7 +66,7 @@ const ServicesAdmin = ({ isEmbedded = false }: ServicesAdminProps) => {
     try {
       const method = editingService.id ? 'PUT' : 'POST';
       
-      const response = await fetch('/pyapi/91a16400-6baa-4748-9387-c7cdad64ce9c', {
+      const response = await fetch('/api/91a16400-6baa-4748-9387-c7cdad64ce9c', {
         method,
         headers: {
           'Content-Type': 'application/json'
@@ -90,7 +90,7 @@ const ServicesAdmin = ({ isEmbedded = false }: ServicesAdminProps) => {
     if (!confirm('Вы уверены, что хотите удалить эту услугу?')) return;
 
     try {
-      const response = await fetch('/pyapi/91a16400-6baa-4748-9387-c7cdad64ce9c', {
+      const response = await fetch('/api/91a16400-6baa-4748-9387-c7cdad64ce9c', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'
@@ -110,7 +110,7 @@ const ServicesAdmin = ({ isEmbedded = false }: ServicesAdminProps) => {
 
   const handleToggleActive = async (service: Service) => {
     try {
-      const response = await fetch('/pyapi/91a16400-6baa-4748-9387-c7cdad64ce9c', {
+      const response = await fetch('/api/91a16400-6baa-4748-9387-c7cdad64ce9c', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

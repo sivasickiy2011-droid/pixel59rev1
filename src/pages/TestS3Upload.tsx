@@ -20,7 +20,7 @@ export default function TestS3Upload() {
     const testImageBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
 
     try {
-      const response = await fetch('/pyapi/1103293c-17a5-453c-b290-c1c376ead996', {
+      const response = await fetch('/api/1103293c-17a5-453c-b290-c1c376ead996', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
