@@ -34,7 +34,7 @@ const News = () => {
           setNewsItems(data.news);
           
           const uniqueCategories = ['Все', ...Array.from(new Set(data.news.map((item: NewsItem) => item.category)))];
-          setCategories(uniqueCategories);
+          setCategories(uniqueCategories as string[]);
         }
       } catch (error) {
         console.error('Error fetching news:', error);

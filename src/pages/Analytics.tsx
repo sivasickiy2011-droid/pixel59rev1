@@ -216,14 +216,14 @@ export default function Analytics() {
 
           <MetricsTab 
             settings={settings}
-            setSettings={setSettings}
+            setSettings={(newSettings) => setSettings({...newSettings, yandex_metrika_token: settings.yandex_metrika_token})}
             saving={saving}
             handleSave={handleSave}
           />
 
           <SeoTab 
             settings={settings}
-            setSettings={setSettings}
+            setSettings={(newSettings) => setSettings({...newSettings, yandex_metrika_token: settings.yandex_metrika_token})}
           />
 
           <StatsTab 

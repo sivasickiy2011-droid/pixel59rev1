@@ -76,7 +76,7 @@ const Portfolio = () => {
     );
   }
 
-  const doubledProjects = [...projects, ...projects];
+  // const doubledProjects = [...projects, ...projects]; // удалено, не используется
   const middleIndex = Math.ceil(projects.length / 2);
   const firstHalf = projects.slice(0, middleIndex);
   const secondHalf = projects.slice(middleIndex);

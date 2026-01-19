@@ -1,3 +1,4 @@
+import AiChat from "./pages/AiChat";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -14,6 +15,7 @@ import BotProtection from "./components/BotProtection";
 import BotAdmin from "./pages/BotAdmin";
 import ConsentAdmin from "./pages/ConsentAdmin";
 import AdminLogin from "./pages/AdminLogin";
+        <Route path="/ai-chat" element={<AiChat />} />
 import LoginHistory from "./pages/LoginHistory";
 import ChangePassword from "./pages/ChangePassword";
 import SecurityAdmin from "./pages/SecurityAdmin";
@@ -60,6 +62,7 @@ const App = () => (
             <Route path="/tg" element={<TelegramMiniApp />} />
             <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
             <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/ai-chat" element={<AiChat />} />
             <Route path="/admin/bots" element={<AdminProtectedRoute><BotAdmin /></AdminProtectedRoute>} />
             <Route path="/admin/consents" element={<AdminProtectedRoute><ConsentAdmin /></AdminProtectedRoute>} />
             <Route path="/admin/partners" element={<AdminProtectedRoute><Partners /></AdminProtectedRoute>} />

@@ -15,7 +15,7 @@ interface PortfolioGalleryProps {
 }
 
 export const PortfolioGallery = ({
-  project,
+  project: _project,
   galleryImages,
   isUploading,
   newImageUrl,

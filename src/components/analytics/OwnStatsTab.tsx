@@ -38,7 +38,7 @@ interface AnalyticsData {
 }
 
 const DEVICE_COLORS = ['#3B82F6', '#10B981', '#F59E0B'];
-const BROWSER_COLORS = ['#3B82F6', '#8B5CF6', '#EC4899', '#10B981', '#F59E0B'];
+// const BROWSER_COLORS = ['#3B82F6', '#8B5CF6', '#EC4899', '#10B981', '#F59E0B']; // удалено, не используется
 
 export default function OwnStatsTab() {
   const [data, setData] = useState<AnalyticsData | null>(null);
@@ -253,7 +253,7 @@ export default function OwnStatsTab() {
                       outerRadius={80}
                       label={(entry) => `${entry.type}: ${entry.count}`}
                     >
-                      {data.devices.map((entry, index) => (
+                      {data.devices.map((_entry, index) => (
                         <Cell key={`cell-${index}`} fill={DEVICE_COLORS[index % DEVICE_COLORS.length]} />
                       ))}
                     </Pie>

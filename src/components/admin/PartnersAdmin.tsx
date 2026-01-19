@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
@@ -18,7 +18,7 @@ interface PartnerLogo {
 }
 
 const PartnersAdmin = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // удалено, не используется
   const [partners, setPartners] = useState<PartnerLogo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);

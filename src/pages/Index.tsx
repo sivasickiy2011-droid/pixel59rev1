@@ -4,7 +4,7 @@ import AboutUs from '@/components/AboutUs';
 import Development from '@/components/Development';
 import Promotion from '@/components/Promotion';
 import Services from '@/components/Services';
-import LeadGeneration from '@/components/LeadGeneration';
+// import LeadGeneration from '@/components/LeadGeneration';
 import Portfolio from '@/components/Portfolio';
 import FAQ from '@/components/FAQ';
 import Contacts from '@/components/Contacts';

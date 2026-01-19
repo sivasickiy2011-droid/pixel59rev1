@@ -27,6 +27,3 @@ echo "✅ Готово!"
 echo "🌐 Сайт: http://172.16.57.77"
 echo "🔧 API: http://172.16.57.77/api/portfolio"
 echo "🐍 Gatevey: http://172.16.57.77/gatevey/health"
-EOF
-
-chmod +x deploy.sh

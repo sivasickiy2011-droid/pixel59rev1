@@ -103,7 +103,7 @@ const AboutUs = () => {
                     const getSmallBlockPosition = (index: number) => {
                       let count = 0;
                       const numRightBlocks = 4;
-                      const numBottomBlocks = 4;
+                      // const numBottomBlocks = 4; // удалено, не используется
                       const rightBlockWidth = 18;
                       const rightBlockHeight = 22;
                       const bottomBlockHeight = 22;

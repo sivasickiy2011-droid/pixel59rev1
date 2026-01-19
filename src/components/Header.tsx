@@ -182,7 +182,11 @@ const Header = () => {
             Контакты
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-gradient-start to-gradient-mid transition-all duration-300 group-hover:w-full" />
           </a>
-          <button 
+          <a href="/ai-chat" className="nav-link-custom relative group" onClick={() => setMenuOpen(false)}>
+            🤖 AI Chat
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-gradient-start to-gradient-mid transition-all duration-300 group-hover:w-full" />
+          </a>
+          <button
             onClick={() => setContactModalOpen(true)}
             className="btn bg-gradient-to-r from-gradient-start to-gradient-mid text-white px-4 lg:px-5 xl:px-6 py-2.5 lg:py-3 rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap hover:shadow-xl transition-all duration-300"
           >

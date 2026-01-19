@@ -28,14 +28,45 @@ async function handleAdminLogsCreate(req, res) {
   return res.json(result.rows[0]);
 }
 
+async function handleAdminStats(req, res) {
+  const total = await pool.query('SELECT COUNT(*) as total FROM admin_login_logs');
+  const success = await pool.query('SELECT COUNT(*) as success FROM admin_login_logs WHERE success = true');
+  const failed = await pool.query('SELECT COUNT(*) as failed FROM admin_login_logs WHERE success = false');
+  return res.json({
+    total_attempts: parseInt(total.rows[0].total),
+    successful_logins: parseInt(success.rows[0].success),
+    failed_attempts: parseInt(failed.rows[0].failed)
+  });
+}
+
 async function handlePartners(req, res) {
   const result = await pool.query('SELECT * FROM partners WHERE is_active = true ORDER BY sort_order');
   return res.json(result.rows);
 }
 
 async function handlePartnerLogos(req, res) {
-  const result = await pool.query('SELECT * FROM partners WHERE is_active = true ORDER BY sort_order');
-  return res.json(result.rows.map(p => ({ id: p.id, name: p.name, logo_url: p.logo_url })));
+  const result = await pool.query('SELECT * FROM partners ORDER BY sort_order');
+  return res.json(result.rows.map(p => ({ 
+    id: p.id, 
+    name: p.name, 
+    logo_url: p.logo_url,
+    website: p.website 
+  })));
+}
+
+async function handlePartnerLogoCreate(req, res) {
+  const { name, logo_url, website } = req.body;
+  const result = await pool.query(
+    'INSERT INTO partners (name, logo_url, website, sort_order, is_active) VALUES ($1, $2, $3, 0, true) RETURNING *',
+    [name, logo_url, website]
+  );
+  return res.json({ success: true, id: result.rows[0].id });
+}
+
+async function handlePartnerLogoDelete(req, res) {
+  const { id } = req.params;
+  await pool.query('DELETE FROM partners WHERE id = $1', [id]);
+  return res.json({ success: true });
 }
 
 async function handleContact(req, res) {
@@ -54,6 +85,16 @@ async function handleWebmaster(req, res) { return res.json([]); }
 async function handleSeoAnalyze(req, res) { return res.json({ score: 80, suggestions: [] }); }
 async function handleSeoApply(req, res) { return res.json({ success: true }); }
 async function handleNews(req, res) { return res.json([]); }
+async function handleNewsCreate(req, res) {
+  const { title, content } = req.body;
+  await pool.query('INSERT INTO news (title, content) VALUES ($1, $2)', [title, content]);
+  return res.json({ success: true });
+}
+async function handleNewsDelete(req, res) {
+  const { id } = req.params;
+  await pool.query('DELETE FROM news WHERE id = $1', [id]);
+  return res.json({ success: true });
+}
 async function handleServices(req, res) { return res.json([]); }
 async function handleConsent(req, res) { return res.json([]); }
 async function handleLegal(req, res, type) { return res.json({ content: 'Content' }); }
@@ -69,9 +110,11 @@ function getUUIDConfig(uuid) {
   const map = {
     '743e5e24-86d0-4a6a-90ac-c71d80a5b822': { method: 'POST', path: '/auth/admin' },
     'fcfd14ca-b5b0-4e96-bd94-e4db4df256d5': { method: 'BOTH', path: '/auth/admin/logs' },
+    '4ea0202f-2619-4cf6-bc32-78c81e7beab3': { method: 'BOTH', path: '/partners/logos' },
+    '3f1e2a11-15ea-463e-9cec-11697b90090c': { method: 'GET', path: '/consent' },
+    '80536dd3-4799-47a9-893a-a756a259460e': { method: 'GET', path: '/consent' },
     '99ddd15c-93b5-4d9e-8536-31e6f6630304': { method: 'POST', path: '/auth/partner' },
     '265f74c3-c0a3-4d44-b005-9119dff641cf': { method: 'GET', path: '/partners' },
-    '4ea0202f-2619-4cf6-bc32-78c81e7beab3': { method: 'GET', path: '/partners/logos' },
     '003b9991-d7d8-4f5d-8257-dee42fad0f91': { method: 'POST', path: '/contact' },
     'f4905f63-ce85-4850-9f3a-2677d35f7d16': { method: 'POST', path: '/contact' },
     '40804d39-8296-462b-abc2-78ee1f80f0dd': { method: 'POST', path: '/brief' },
@@ -81,10 +124,8 @@ function getUUIDConfig(uuid) {
     '23efbca4-f3c3-48b8-afb7-a2e528bf68f9': { method: 'POST', path: '/seo/analyze' },
     'f7cef033-563d-43d4-bc11-18ea42d54a00': { method: 'POST', path: '/seo/analyze' },
     'f75a6b04-8c4d-40ca-b0a1-adc0b31d79dd': { method: 'POST', path: '/seo/apply' },
-    '91a16400-6baa-4748-9387-c7cdad64ce9c': { method: 'GET', path: '/news' },
+    '91a16400-6baa-4748-9387-c7cdad64ce9c': { method: 'BOTH', path: '/news' },
     '4dbcd084-f89e-4737-be41-9371059c6e4d': { method: 'GET', path: '/services' },
-    '80536dd3-4799-47a9-893a-a756a259460e': { method: 'GET', path: '/consent' },
-    '3f1e2a11-15ea-463e-9cec-11697b90090c': { method: 'GET', path: '/consent' },
     '5e53ea79-1c81-4c3f-847b-e8a82a5743c2': { method: 'GET', path: '/legal/terms' },
     '961bcfd3-a4a3-4d7e-b238-7d19be6f98e1': { method: 'GET', path: '/legal/privacy' },
     'c7b03587-cdba-48a4-ac48-9aa2775ff9a0': { method: 'POST', path: '/upload/image' },
@@ -107,6 +148,8 @@ router.post('/:uuid', async (req, res) => {
   try {
     switch (config.path) {
       case '/auth/admin': return handleAuthAdmin(req, res);
+      case '/auth/admin/logs': return handleAdminLogsCreate(req, res);
+      case '/partners/logos': return handlePartnerLogoCreate(req, res);
       case '/contact': return handleContact(req, res);
       case '/brief': return handleBrief(req, res);
       case '/seo/analyze': return handleSeoAnalyze(req, res);
@@ -116,10 +159,11 @@ router.post('/:uuid', async (req, res) => {
       case '/secure-settings': return handleSecureSettings(req, res);
       case '/bot/log': return handleBotLog(req, res);
       case '/auth/partner': return handlePartnerAuth(req, res);
-      case '/auth/admin/logs': return handleAdminLogsCreate(req, res);
+      case '/news': return handleNewsCreate(req, res);
       default: return res.json({ success: true });
     }
   } catch (error) {
+    console.error('UUID POST error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -146,6 +190,23 @@ router.get('/:uuid', async (req, res) => {
       case '/secure-settings': return handleSecureSettings(req, res);
       case '/password-manager': return handlePasswords(req, res);
       case '/bot/stats': return handleBotStats(req, res);
+      default: return res.json({ success: true });
+    }
+  } catch (error) {
+    console.error('UUID GET error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete('/:uuid/:id', async (req, res) => {
+  const { uuid, id } = req.params;
+  const config = getUUIDConfig(uuid);
+  if (!config) return res.status(404).json({ error: 'Not found' });
+  
+  try {
+    switch (config.path) {
+      case '/partners/logos': return handlePartnerLogoDelete(req, res);
+      case '/news': return handleNewsDelete(req, res);
       default: return res.json({ success: true });
     }
   } catch (error) {

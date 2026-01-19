@@ -231,14 +231,14 @@ const CalcModal = ({ open, onOpenChange }: CalcModalProps) => {
     if (selectedTechnology === 'bitrix' && selectedBitrixLicense) {
       const license = bitrixLicenses.find(l => l.id === selectedBitrixLicense);
       if (license) {
-        services.push(`Битрикс: ${license.name}`);
+        services.push(`Битрикс: ${license.title}`);
       }
     }
 
     if (selectedHosting) {
       const hosting = hostingOptions.find(h => h.id === selectedHosting);
       if (hosting) {
-        services.push(`Хостинг: ${hosting.name}`);
+        services.push(`Хостинг: ${hosting.title}`);
       }
     }
 

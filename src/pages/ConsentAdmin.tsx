@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ShieldCheck, Users, Mail, Phone, Search, Filter, X, Download, FileSpreadsheet, FileText } from 'lucide-react';
+import { ShieldCheck, Users, Mail, Phone, Search, Filter, X, FileSpreadsheet, FileText } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import AdminLayout from '@/components/AdminLayout';
 

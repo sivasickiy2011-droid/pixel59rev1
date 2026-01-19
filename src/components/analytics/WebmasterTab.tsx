@@ -40,7 +40,9 @@ const getSeverityColor = (severity: string) => {
   }
 };
 
-export default function WebmasterTab({ settings, webmasterIssues, loadingIssues }: WebmasterTabProps) {
+export default function WebmasterTab({ settings: _settings, webmasterIssues, loadingIssues }: WebmasterTabProps) {
+  // Фиктивное использование для удовлетворения TypeScript
+  void _settings;
   return (
     <TabsContent value="webmaster" className="space-y-6 mt-6">
       <Card className="bg-gray-800/50 border-gray-700">

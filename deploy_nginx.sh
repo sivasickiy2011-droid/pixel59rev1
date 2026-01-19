@@ -1,3 +1,7 @@
+#!/bin/bash
+# Deploy nginx config with AI Chat proxy
+
+cat > /tmp/new_nginx.conf << 'EOF'
 events {
     worker_connections 1024;
 }
@@ -40,6 +44,16 @@ http {
             try_files $uri $uri/ /index.html;
         }
 
+        # AI Chat API Proxy (to backend)
+        location /api/ai-chat/ {
+            proxy_pass http://api:3001/api/ai-chat/;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
         # Ollama API Proxy
         location /api/ollama/ {
             proxy_pass http://172.16.57.77:11434/;
@@ -61,18 +75,6 @@ http {
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        location /api/ {
-            proxy_pass http://localhost:3001/;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_cache_bypass $http_upgrade;
         }
 
         location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
@@ -144,3 +146,8 @@ http {
         }
     }
 }
+EOF
+
+cp /tmp/new_nginx.conf /etc/nginx/nginx.conf
+nginx -t && nginx -s reload
+echo "Nginx reloaded with AI Chat proxy"

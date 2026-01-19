@@ -27,7 +27,10 @@ interface SeoAnalysisResult {
   improvements: string[];
 }
 
-export default function SeoTab({ settings, setSettings }: SeoTabProps) {
+export default function SeoTab({ settings: _settings, setSettings: _setSettings }: SeoTabProps) {
+  // Фиктивное использование для удовлетворения TypeScript
+  void _settings;
+  void _setSettings;
   const [analyzing, setAnalyzing] = useState(false);
   const [applying, setApplying] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<SeoAnalysisResult | null>(null);
