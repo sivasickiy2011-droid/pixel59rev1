@@ -21,5 +21,7 @@
   "admin-login-logs": "/api/4ea0202f-2619-4cf6-bc32-78c81e7beab3",
   "auth-admin": "/api/fcfd14ca-b5b0-4e96-bd94-e4db4df256d5",
   "consent": "/api/80536dd3-4799-47a9-893a-a756a259460e",
-  "news-feed": "/api/265f74c3-c0a3-4d44-b005-9119dff641cf"
+  "news-feed": "/api/265f74c3-c0a3-4d44-b005-9119dff641cf",
+  "telegram-password-reset": "/api/108ae5ed-e950-40bd-9b28-9149ddf9dae1",
+  "news-admin": "/api/7aa533b8-b464-4b36-bd36-9c34cb6d0b8e"
 }

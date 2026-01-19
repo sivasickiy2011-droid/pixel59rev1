@@ -24,8 +24,18 @@ def get_all_projects() -> List[Dict[str, Any]]:
     try:
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT id, title, description, image_url, carousel_image_url, preview_image_url, website_url, display_order, is_active, created_at
-                FROM t_p26695620_cav_bitrix_portfolio.portfolio_projects
+                SELECT
+                    id,
+                    title,
+                    description,
+                    image_url,
+                    NULL AS carousel_image_url,
+                    NULL AS preview_image_url,
+                    project_url AS website_url,
+                    sort_order AS display_order,
+                    is_active,
+                    created_at
+                FROM public.portfolio
                 WHERE is_active = true
                 ORDER BY display_order ASC, created_at DESC
             """)
@@ -48,16 +58,14 @@ def create_project(data: Dict[str, Any]) -> Dict[str, Any]:
     try:
         with conn.cursor() as cur:
             cur.execute("""
-                INSERT INTO t_p26695620_cav_bitrix_portfolio.portfolio_projects 
-                (title, description, image_url, carousel_image_url, preview_image_url, website_url, display_order, is_active)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id, title, description, image_url, carousel_image_url, preview_image_url, website_url, display_order, is_active, created_at
+                INSERT INTO public.portfolio
+                (title, description, image_url, project_url, sort_order, is_active)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING id, title, description, image_url, project_url, sort_order, is_active, created_at
             """, (
                 data.get('title', '')[:10],
                 data.get('description', ''),
                 data.get('image_url', ''),
-                data.get('carousel_image_url'),
-                data.get('preview_image_url'),
                 data.get('website_url', ''),
                 data.get('display_order', 0),
                 data.get('is_active', True)
@@ -68,6 +76,11 @@ def create_project(data: Dict[str, Any]) -> Dict[str, Any]:
             columns = [desc[0] for desc in cur.description]
             row = cur.fetchone()
             project = dict(zip(columns, row))
+            # Rename fields to match frontend expectation
+            project['website_url'] = project.pop('project_url', '')
+            project['display_order'] = project.pop('sort_order', 0)
+            project['carousel_image_url'] = None
+            project['preview_image_url'] = None
             if project.get('created_at'):
                 project['created_at'] = project['created_at'].isoformat()
             
@@ -81,17 +94,15 @@ def update_project(project_id: int, data: Dict[str, Any]) -> Dict[str, Any]:
     try:
         with conn.cursor() as cur:
             cur.execute("""
-                UPDATE t_p26695620_cav_bitrix_portfolio.portfolio_projects
-                SET title = %s, description = %s, image_url = %s, carousel_image_url = %s, preview_image_url = %s, 
-                    website_url = %s, display_order = %s, is_active = %s, updated_at = CURRENT_TIMESTAMP
+                UPDATE public.portfolio
+                SET title = %s, description = %s, image_url = %s, project_url = %s,
+                    sort_order = %s, is_active = %s, updated_at = CURRENT_TIMESTAMP
                 WHERE id = %s
-                RETURNING id, title, description, image_url, carousel_image_url, preview_image_url, website_url, display_order, is_active, created_at
+                RETURNING id, title, description, image_url, project_url, sort_order, is_active, created_at
             """, (
                 data.get('title', '')[:10],
                 data.get('description', ''),
                 data.get('image_url', ''),
-                data.get('carousel_image_url'),
-                data.get('preview_image_url'),
                 data.get('website_url', ''),
                 data.get('display_order', 0),
                 data.get('is_active', True),
@@ -106,6 +117,11 @@ def update_project(project_id: int, data: Dict[str, Any]) -> Dict[str, Any]:
                 return None
             
             project = dict(zip(columns, row))
+            # Rename fields to match frontend expectation
+            project['website_url'] = project.pop('project_url', '')
+            project['display_order'] = project.pop('sort_order', 0)
+            project['carousel_image_url'] = None
+            project['preview_image_url'] = None
             if project.get('created_at'):
                 project['created_at'] = project['created_at'].isoformat()
             

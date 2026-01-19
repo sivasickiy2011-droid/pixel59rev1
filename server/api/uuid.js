@@ -3,6 +3,58 @@ const router = express.Router();
 const pool = require('../config/database');
 const bcrypt = require('bcrypt');
 
+const backendUUIDs = new Set([
+  'f4905f63-ce85-4850-9f3a-2677d35f7d16', // track-visit
+  '70951bfa-3fca-4f90-b41f-449db03fd019', // get-analytics
+  '0254ff37-a984-465b-873c-b4aabdc73b96', // seo-analyze
+  'f81db335-2453-41e1-9b1e-aaf4c61ea06f', // seo-apply
+  'c3e66558-8a5b-42d7-b34d-ca6815cb2f76', // bot-logger
+  '9e365935-6746-496e-8c6f-c4dddd4c655c', // bot-stats
+  '743e5e24-86d0-4a6a-90ac-c71d80a5b822', // password-manager
+  '6f0735b1-7477-4660-b2b0-0b694b4f36ea', // upload-image
+  '28e36fe2-2513-4ae6-bf76-26a49b33c1bf', // brief-handler
+  'fa56bf24-1e0b-4d49-8511-6befcd962d6f', // secure-settings
+  '003b9991-d7d8-4f5d-8257-dee42fad0f91', // contact-form
+  '91a16400-6baa-4748-9387-c7cdad64ce9c', // services-admin
+  '40804d39-8296-462b-abc2-78ee1f80f0dd', // yandex-metrika-stats
+  'f7cef033-563d-43d4-bc11-18ea42d54a00', // yandex-webmaster-issues
+  '99ddd15c-93b5-4d9e-8536-31e6f6630304', // portfolio
+  'c7b03587-cdba-48a4-ac48-9aa2775ff9a0', // admin-partner-logos
+  '3f1e2a11-15ea-463e-9cec-11697b90090c', // partners
+  'a074b7ff-c52b-4b46-a194-d991148dfa59', // partner-auth
+  '4dbcd084-f89e-4737-be41-9371059c6e4d', // submit-order
+  '4ea0202f-2619-4cf6-bc32-78c81e7beab3', // admin-login-logs
+  'fcfd14ca-b5b0-4e96-bd94-e4db4df256d5', // auth-admin
+  '80536dd3-4799-47a9-893a-a756a259460e', // consent
+  '265f74c3-c0a3-4d44-b005-9119dff641cf', // news-feed
+  '7aa533b8-b464-4b36-bd36-9c34cb6d0b8e', // news-admin
+]);
+
+async function proxyToGatevey(req, res) {
+  const { uuid } = req.params;
+  const targetUrl = `http://localhost:3002/api/${uuid}`;
+  const method = req.method;
+  const headers = { ...req.headers, host: 'localhost:3002' };
+  // Удаляем заголовки, которые могут мешать
+  delete headers['content-length'];
+  delete headers['host'];
+  
+  const body = ['POST', 'PUT', 'PATCH'].includes(method) ? JSON.stringify(req.body) : undefined;
+  
+  try {
+    const response = await fetch(targetUrl, {
+      method,
+      headers,
+      body,
+    });
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (error) {
+    console.error('Proxy error:', error);
+    res.status(500).json({ error: 'Proxy failed', message: error.message });
+  }
+}
+
 async function handleAuthAdmin(req, res) {
   const { password } = req.body;
   const result = await pool.query('SELECT * FROM users LIMIT 1');
@@ -142,6 +194,9 @@ function getUUIDConfig(uuid) {
 
 router.post('/:uuid', async (req, res) => {
   const { uuid } = req.params;
+  if (backendUUIDs.has(uuid)) {
+    return proxyToGatevey(req, res);
+  }
   const config = getUUIDConfig(uuid);
   if (!config) return res.status(404).json({ error: 'UUID not found' });
   
@@ -170,6 +225,9 @@ router.post('/:uuid', async (req, res) => {
 
 router.get('/:uuid', async (req, res) => {
   const { uuid } = req.params;
+  if (backendUUIDs.has(uuid)) {
+    return proxyToGatevey(req, res);
+  }
   const config = getUUIDConfig(uuid);
   if (!config) return res.status(404).json({ error: 'Not found' });
   if (config.method === 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -200,6 +258,9 @@ router.get('/:uuid', async (req, res) => {
 
 router.delete('/:uuid/:id', async (req, res) => {
   const { uuid, id } = req.params;
+  if (backendUUIDs.has(uuid)) {
+    return proxyToGatevey(req, res);
+  }
   const config = getUUIDConfig(uuid);
   if (!config) return res.status(404).json({ error: 'Not found' });
   

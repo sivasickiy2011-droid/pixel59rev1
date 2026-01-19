@@ -44,23 +44,29 @@ const CookieConsent = () => {
     setIsSubmitting(true);
 
     try {
-      if (privacy) {
-        const response = await fetch('/api/80536dd3-4799-47a9-893a-a756a259460e', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            cookies,
-            terms,
-            privacy,
-            fullName: fullName.trim(),
-            phone: phone.trim(),
-            email: email.trim(),
-          })
-        });
+      // Таймаут запроса 10 секунд
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-        if (!response.ok) {
-          throw new Error('Ошибка сохранения данных');
-        }
+      // Всегда отправляем согласие на сервер, даже если privacy не отмечена
+      const response = await fetch('/api/80536dd3-4799-47a9-893a-a756a259460e', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cookies,
+          terms,
+          privacy,
+          fullName: privacy ? fullName.trim() : '',
+          phone: phone.trim(),
+          email: email.trim(),
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error('Ошибка сохранения данных');
       }
 
       localStorage.setItem('cookieConsent', JSON.stringify({
@@ -73,7 +79,11 @@ const CookieConsent = () => {
       setIsVisible(false);
     } catch (error) {
       console.error('Error saving consent:', error);
-      alert('Произошла ошибка при сохранении данных. Попробуйте еще раз.');
+      if (error instanceof Error && error.name === 'AbortError') {
+        alert('Время ожидания ответа истекло. Проверьте подключение к интернету и попробуйте еще раз.');
+      } else {
+        alert('Произошла ошибка при сохранении данных. Попробуйте еще раз.');
+      }
     } finally {
       setIsSubmitting(false);
     }

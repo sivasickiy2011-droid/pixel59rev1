@@ -5,9 +5,12 @@ Returns: HTTP response with success/error status
 '''
 import json
 import os
+import urllib.request
+import time
 from typing import Dict, Any
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from _shared.db_secrets import get_secret
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method: str = event.get('httpMethod', 'GET')
@@ -36,7 +39,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             terms = body_data.get('terms', False)
             privacy = body_data.get('privacy', False)
             
-            if not full_name:
+            # Если privacy не принято, разрешаем пустое full_name
+            if privacy and not full_name:
                 return {
                     'statusCode': 400,
                     'headers': {
@@ -44,8 +48,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'Access-Control-Allow-Origin': '*'
                     },
                     'isBase64Encoded': False,
-                    'body': json.dumps({'error': 'Full name is required'})
+                    'body': json.dumps({'error': 'Full name is required when privacy accepted'})
                 }
+            # Если full_name пустое, устанавливаем 'Аноним'
+            if not full_name:
+                full_name = 'Аноним'
             
             request_context = event.get('requestContext', {})
             ip_address = request_context.get('identity', {}).get('sourceIp', 'unknown')
@@ -83,6 +90,48 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             cur.close()
             conn.close()
             
+            # Отправка уведомления в Telegram (не блокирующая, с коротким таймаутом)
+            telegram_success = False
+            try:
+                telegram_bot_token = get_secret('TELEGRAM_BOT_TOKEN')
+                telegram_chat_id = get_secret('TELEGRAM_CHAT_ID')
+                if telegram_bot_token and telegram_chat_id:
+                    telegram_message = f'''
+✅ Новое согласие от пользователя
+👤 Имя: {full_name}
+📞 Телефон: {phone or 'не указан'}
+📧 Email: {email or 'не указан'}
+🍪 Cookies: {'да' if cookies else 'нет'}
+📋 Terms: {'да' if terms else 'нет'}
+🔐 Privacy: {'да' if privacy else 'нет'}
+🌐 IP: {ip_address}
+🆔 ID: {consent_id}
+'''
+                    telegram_url = f'https://api.telegram.org/bot{telegram_bot_token}/sendMessage'
+                    telegram_data = {
+                        'chat_id': telegram_chat_id,
+                        'text': telegram_message,
+                        'parse_mode': 'HTML'
+                    }
+                    # Уменьшаем таймаут до 3 секунд
+                    telegram_request = urllib.request.Request(
+                        telegram_url,
+                        data=json.dumps(telegram_data).encode('utf-8'),
+                        headers={'Content-Type': 'application/json'}
+                    )
+                    # Используем socket timeout и общий timeout
+                    import socket
+                    socket.setdefaulttimeout(3.0)
+                    with urllib.request.urlopen(telegram_request, timeout=3) as response:
+                        telegram_result = json.loads(response.read().decode('utf-8'))
+                        telegram_success = telegram_result.get('ok', False)
+            except urllib.error.URLError as e:
+                print(f'Telegram URL error (timeout?): {str(e)}')
+                # Не критично, просто не отправлено
+            except Exception as e:
+                print(f'Telegram error: {str(e)}')
+                # Игнорируем ошибку, чтобы не влиять на сохранение согласия
+            
             return {
                 'statusCode': 200,
                 'headers': {
@@ -92,7 +141,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False,
                 'body': json.dumps({
                     'success': True,
-                    'id': consent_id
+                    'id': consent_id,
+                    'telegram_sent': telegram_success
                 })
             }
             

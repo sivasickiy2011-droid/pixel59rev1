@@ -18,7 +18,7 @@ const AdminLogin = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/743e5e24-86d0-4a6a-90ac-c71d80a5b822', {
+      const response = await fetch('/api/fcfd14ca-b5b0-4e96-bd94-e4db4df256d5', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

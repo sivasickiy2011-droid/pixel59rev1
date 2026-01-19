@@ -23,4 +23,8 @@ export default defineConfig(({mode}) => ({
             overlay: false // Disables the error overlay if you only want console errors
         }
     },
+    build: {
+        outDir: mode === 'preview' ? 'dist-preview' : 'dist',
+        sourcemap: mode === 'preview',
+    },
 }));

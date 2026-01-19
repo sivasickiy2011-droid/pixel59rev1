@@ -12,6 +12,7 @@ import Footer from '@/components/Footer';
 import CookieConsent from '@/components/CookieConsent';
 import PartnerLogin from '@/components/services/PartnerLogin';
 import HowItWorks from '@/components/HowItWorks';
+import FloatingChat from '@/components/FloatingChat';
 
 const Index = () => {
   return (
@@ -33,6 +34,7 @@ const Index = () => {
 
       <Footer />
       <CookieConsent />
+      <FloatingChat />
     </div>
   );
 };

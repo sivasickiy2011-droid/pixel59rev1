@@ -23,6 +23,26 @@ def log_login_attempt(ip_address: str, user_agent: str, success: bool) -> None:
     cursor.close()
     conn.close()
 
+def get_password_hash_from_db() -> str:
+    """Получает хеш пароля из таблицы users для админа (id=2 или username='suser')"""
+    database_url = os.environ.get('DATABASE_URL')
+    if not database_url:
+        return ''
+    
+    conn = psycopg2.connect(database_url)
+    cursor = conn.cursor()
+    
+    cursor.execute(
+        "SELECT password_hash FROM users WHERE id = 2 OR username = 'suser' LIMIT 1"
+    )
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    
+    if row:
+        return row[0]
+    return ''
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
     Business: Authenticate admin user with password and log attempt
@@ -81,7 +101,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    admin_password_hash = os.environ.get('ADMIN_PASSWORD_HASH')
+    # Получаем хеш из базы данных (приоритет)
+    admin_password_hash = get_password_hash_from_db()
+    # Если в базе нет, используем переменную окружения (для обратной совместимости)
+    if not admin_password_hash:
+        admin_password_hash = os.environ.get('ADMIN_PASSWORD_HASH', '')
     
     if not admin_password_hash:
         return {
@@ -97,6 +121,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     password_bytes = password.encode('utf-8')
     hash_str = admin_password_hash.strip()
     
+    # Исправляем префикс $2a$ на $2b$ для совместимости с bcrypt
     if hash_str.startswith('$2a$'):
         hash_str = '$2b$' + hash_str[4:]
     

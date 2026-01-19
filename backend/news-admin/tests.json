@@ -1,0 +1,13 @@
+{
+  "tests": [
+    {
+      "name": "Admin news refresh POST",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {},
+      "expectedStatusCode": 200
+    }
+  ]
+}
