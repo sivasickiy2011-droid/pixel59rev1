@@ -79,7 +79,7 @@ const NewsAdmin = () => {
   const handleRefreshFeed = async () => {
     setRefreshLoading(true);
     try {
-      const response = await fetch('/api/7aa533b8-b464-4b36-bd36-9c34cb6d0b8e', {
+      const response = await fetch('/api/265f74c3-c0a3-4d44-b005-9119dff641cf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -320,7 +320,7 @@ const NewsAdmin = () => {
               key={item.id}
               className={`bg-white dark:bg-gray-800 rounded-xl shadow-md border ${
                 item.is_active ? 'border-green-200 dark:border-green-800' : 'border-gray-200 dark:border-gray-700'
-              } p-4 space-y-3`}
+              } p-4 space-y-3 transition-all duration-300 hover:shadow-lg`}
             >
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2">

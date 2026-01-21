@@ -57,7 +57,7 @@ const BotProtection = () => {
     const isWhitelisted = whitelistedBots.some(pattern => userAgent.includes(pattern));
     
     if (isWhitelisted) {
-      fetch('/api/c61d607d-a45d-40ee-88b9-34da6d3ca3e7', {
+      fetch('/api/c3e66558-8a5b-42d7-b34d-ca6815cb2f76', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -71,7 +71,7 @@ const BotProtection = () => {
     const isMaliciousBot = maliciousBotPatterns.some(pattern => userAgent.includes(pattern));
     
     if (isMaliciousBot) {
-      fetch('/api/c61d607d-a45d-40ee-88b9-34da6d3ca3e7', {
+      fetch('/api/c3e66558-8a5b-42d7-b34d-ca6815cb2f76', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

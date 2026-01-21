@@ -29,6 +29,35 @@
         "error": "string"
       },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "POST successful login",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "password": "correctpassword",
+        "captcha_token": "valid",
+        "twofa_code": "123456"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "tokens": "object"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "POST refresh token",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "grant_type": "refresh_token",
+        "refresh_token": "invalid"
+      },
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }

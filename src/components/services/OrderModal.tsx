@@ -31,6 +31,8 @@ export default function OrderModal({ isOpen, onClose, total, services }: OrderMo
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [honeypot, setHoneypot] = useState('');
+  const [captchaValue, setCaptchaValue] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -43,6 +45,16 @@ export default function OrderModal({ isOpen, onClose, total, services }: OrderMo
         description: 'Для отправки заявки необходимо принять согласие на использование cookies'
       });
       showConsentMessage();
+      return;
+    }
+
+    if (honeypot) {
+      setError('Подозрительное поведение обнаружено, заявка не отправлена');
+      return;
+    }
+
+    if (captchaValue.trim() !== '7') {
+      setError('Неверный ответ на капчу');
       return;
     }
 
@@ -63,6 +75,8 @@ export default function OrderModal({ isOpen, onClose, total, services }: OrderMo
           name,
           phone,
           email,
+          captcha: captchaValue,
+          botField: honeypot,
         }),
       });
 
@@ -184,16 +198,38 @@ export default function OrderModal({ isOpen, onClose, total, services }: OrderMo
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email *</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="example@mail.ru"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isSubmitting}
-            />
+          <Label htmlFor="email">Email *</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="example@mail.ru"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={isSubmitting}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="captcha">Сколько будет 3 + 4? *</Label>
+          <Input
+            id="captcha"
+            value={captchaValue}
+            onChange={(e) => setCaptchaValue(e.target.value)}
+            required
+            disabled={isSubmitting}
+            placeholder="Введите ответ"
+          />
+        </div>
+
+        <div className="hidden">
+          <Input
+            name="botField"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+            aria-hidden="true"
+            tabIndex={-1}
+          />
           </div>
 
           {error && (

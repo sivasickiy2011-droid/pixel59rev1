@@ -9,6 +9,13 @@ import http.client
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
+from backend._shared.logging import log_event
+from backend._shared.security import (
+    ensure_admin_authorized,
+    enforce_rate_limit,
+    is_valid_image_url,
+)
+
 def get_db_connection():
     dsn = os.environ.get('DATABASE_URL')
     if not dsn:
@@ -100,6 +107,12 @@ def extract_image(entry) -> str:
     # Заглушка по умолчанию (тематическая картинка)
     return 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800'
 
+
+def normalize_image_url(url: str) -> str:
+    if is_valid_image_url(url):
+        return url
+    return 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800'
+
 def translate_month(date_str: str) -> str:
     months = {
         'January': 'января', 'February': 'февраля', 'March': 'марта',
@@ -156,7 +169,6 @@ def translate_full_content(text: str) -> str:
     """Перевод полного контента (ограничиваем размер для Ollama)"""
     if not text or len(text.strip()) < 10:
         return text
-    # Ограничиваем размер контента для перевода (первые 2000 символов)
     truncated = text[:2000]
     return translate_text(truncated)
 
@@ -259,32 +271,29 @@ def fetch_and_translate_news() -> List[Dict[str, Any]]:
     
     return all_news
 
-def save_news_to_db(news_items: List[Dict[str, Any]]) -> Dict[str, Any]:
+MAX_NEWS_PER_RUN = 80
+
+
+def save_news_to_db(news_items: List[Dict[str, Any]], auth_payload: Dict[str, Any]) -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor()
-    
+
     inserted = 0
     updated = 0
     errors = 0
-    
+
     for item in news_items:
         try:
-            # Check if news already exists by link
-            cur.execute(
-                "SELECT id, translated_title FROM news WHERE link = %s",
-                (item['link'],)
-            )
+            cur.execute("SELECT id FROM news WHERE link = %s", (item['link'],))
             existing = cur.fetchone()
-            
+
+            image_url = normalize_image_url(item.get('image_url', ''))
+
             if existing:
-                # Проверяем, нужно ли обновить перевод контента
-                need_update = False
-                # Если translated_content пуст в базе, обновляем
                 cur.execute("SELECT translated_content FROM news WHERE id = %s", (existing[0],))
                 trans_content_row = cur.fetchone()
-                if trans_content_row and (trans_content_row[0] is None or trans_content_row[0].strip() == ''):
-                    need_update = True
-                
+                need_update = bool(trans_content_row and (trans_content_row[0] is None or trans_content_row[0].strip() == ''))
+
                 if need_update:
                     cur.execute(
                         """UPDATE news SET
@@ -311,19 +320,17 @@ def save_news_to_db(news_items: List[Dict[str, Any]]) -> Dict[str, Any]:
                             item['translated_content'],
                             item['source'],
                             item['source_url'],
-                            item['image_url'],
+                            image_url,
                             item['category'],
                             item['published_date'],
                             item['link']
                         )
                     )
                     updated += 1
-                    print(f'Updated news item {item["link"]} with translated content')
+                    log_event('news-admin.update', {'link': item['link'], 'user': auth_payload.get('sub')})
                 else:
-                    # Already translated, skip
                     print(f'Skipping news item {item["link"]} (already translated)')
             else:
-                # Insert new
                 cur.execute(
                     """INSERT INTO news
                        (original_title, translated_title, original_excerpt, translated_excerpt,
@@ -340,20 +347,21 @@ def save_news_to_db(news_items: List[Dict[str, Any]]) -> Dict[str, Any]:
                         item['source'],
                         item['source_url'],
                         item['link'],
-                        item['image_url'],
+                        image_url,
                         item['category'],
                         item['published_date']
                     )
                 )
                 inserted += 1
+                log_event('news-admin.insert', {'link': item['link'], 'user': auth_payload.get('sub')})
         except Exception as e:
             print(f"Error saving news item {item['link']}: {e}")
             errors += 1
-    
+
     conn.commit()
     cur.close()
     conn.close()
-    
+
     return {
         'inserted': inserted,
         'updated': updated,
@@ -393,10 +401,36 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     try:
         print('Fetching and translating news...')
+        auth_payload = ensure_admin_authorized(event.get('headers'))
+        if not auth_payload:
+            return {
+                'statusCode': 401,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({'error': 'Unauthorized'})
+            }
+
+        rate_limit_hit = enforce_rate_limit('news-admin', event, limit=10, window_seconds=60)
+        if rate_limit_hit:
+            return {
+                'statusCode': 429,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({'error': 'Too many requests'})
+            }
+
         news_items = fetch_and_translate_news()
         print(f'Fetched {len(news_items)} news items')
-        
-        result = save_news_to_db(news_items)
+
+        if len(news_items) > MAX_NEWS_PER_RUN:
+            news_items = news_items[:MAX_NEWS_PER_RUN]
+            print(f'Trimmed news items to {MAX_NEWS_PER_RUN} for stability')
+
+        result = save_news_to_db(news_items, auth_payload)
         print(f'Save result: {result}')
         
         return {

@@ -12,6 +12,13 @@ import psycopg2
 from typing import Dict, Any, List
 from datetime import datetime
 
+from backend._shared.logging import log_event
+from backend._shared.security import (
+    ensure_admin_authorized,
+    enforce_rate_limit,
+    sanitize_text,
+    is_valid_image_url,
+)
 def get_db_connection():
     """Create database connection"""
     dsn = os.environ.get('DATABASE_URL')
@@ -209,9 +216,22 @@ def delete_news(news_id: int) -> bool:
     finally:
         conn.close()
 
+def require_admin(event: Dict[str, Any]) -> Dict[str, Any] | None:
+    payload = ensure_admin_authorized(event.get('headers'))
+    if not payload:
+        return None
+    if enforce_rate_limit('news-admin-crud', event, limit=30, window_seconds=60):
+        raise ValueError('rate_limit')
+    return payload
+
+
+def validate_text(value: str, default: str = '') -> str:
+    return sanitize_text(value or default)
+
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
-    
+
     if method == 'OPTIONS':
         return {
             'statusCode': 200,
@@ -229,7 +249,24 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
     }
-    
+
+    try:
+        auth_payload = require_admin(event)
+        if not auth_payload:
+            return {
+                'statusCode': 401,
+                'headers': headers,
+                'body': json.dumps({'error': 'Unauthorized'}),
+                'isBase64Encoded': False
+            }
+    except ValueError as exc:
+        return {
+            'statusCode': 429,
+            'headers': headers,
+            'body': json.dumps({'error': 'Too many requests'}),
+            'isBase64Encoded': False
+        }
+
     try:
         if method == 'GET':
             news = get_all_news()
@@ -242,7 +279,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         elif method == 'POST':
             body_data = json.loads(event.get('body', '{}'))
+            body_data = {k: sanitize_text(str(v)) if isinstance(v, str) else v for k, v in body_data.items()}
             news_item = create_news(body_data)
+            log_event('news-admin-crud.create', {'id': news_item.get('id'), 'user': auth_payload.get('sub')})
             return {
                 'statusCode': 201,
                 'headers': headers,
@@ -253,7 +292,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         elif method == 'PUT':
             body_data = json.loads(event.get('body', '{}'))
             news_id = body_data.get('id')
-            
+
             if not news_id:
                 return {
                     'statusCode': 400,

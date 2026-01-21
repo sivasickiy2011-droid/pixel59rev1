@@ -11,6 +11,16 @@ from typing import Dict, Any
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from _shared.db_secrets import get_secret
+from _shared.security import (
+    sanitize_text,
+    is_valid_phone,
+    is_valid_email,
+    rate_limited,
+    validate_origin,
+    check_honeypot,
+)
+from _shared.logging import log_event
+import threading
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method: str = event.get('httpMethod', 'GET')
@@ -28,13 +38,80 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
+    headers = event.get('headers', {})
+    origin = headers.get('origin', headers.get('Origin', ''))
+    referer = headers.get('referer', headers.get('Referer', ''))
+
+    if not validate_origin(origin) and not validate_origin(referer):
+        return {
+            'statusCode': 403,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'isBase64Encoded': False,
+            'body': json.dumps({'error': 'Forbidden: Invalid origin'})
+        }
+
+    def _send_telegram(message_payload: dict):
+        telegram_token = get_secret('TELEGRAM_BOT_TOKEN')
+        telegram_chat = get_secret('TELEGRAM_CHAT_ID')
+        if not telegram_token or not telegram_chat:
+            return
+
+        attempts = 0
+        while attempts < 3:
+            try:
+                telegram_url = f'https://api.telegram.org/bot{telegram_token}/sendMessage'
+                request_payload = {
+                    'chat_id': telegram_chat,
+                    'text': message_payload['text'],
+                    'parse_mode': 'HTML'
+                }
+                req = urllib.request.Request(
+                    telegram_url,
+                    data=json.dumps(request_payload).encode('utf-8'),
+                    headers={'Content-Type': 'application/json'}
+                )
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    result = json.loads(response.read().decode('utf-8'))
+                    if result.get('ok'):
+                        break
+            except Exception as e:
+                log_event('consent_telegram_retry_error', {'error': str(e), 'attempt': attempts + 1})
+                time.sleep(attempts + 1)
+            attempts += 1
+
     if method == 'POST':
         try:
             body_data = json.loads(event.get('body', '{}'))
             
-            full_name = body_data.get('fullName', '').strip()
-            phone = body_data.get('phone', '').strip() or None
-            email = body_data.get('email', '').strip() or None
+            if check_honeypot(body_data):
+                return {
+                    'statusCode': 400,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Bot detected'})
+                }
+
+            ip_address = event.get('requestContext', {}).get('identity', {}).get('sourceIp', 'unknown')
+            if rate_limited(f'consent:{ip_address}', limit=10):
+                return {
+                    'statusCode': 429,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Rate limit exceeded'})
+                }
+
+            full_name = sanitize_text(body_data.get('fullName', 'Аноним'))
+            phone = sanitize_text(body_data.get('phone', '')).strip() or None
+            email = sanitize_text(body_data.get('email', '')).strip() or None
             cookies = body_data.get('cookies', False)
             terms = body_data.get('terms', False)
             privacy = body_data.get('privacy', False)
@@ -54,9 +131,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             if not full_name:
                 full_name = 'Аноним'
             
-            request_context = event.get('requestContext', {})
-            ip_address = request_context.get('identity', {}).get('sourceIp', 'unknown')
             user_agent = event.get('headers', {}).get('user-agent', 'unknown')
+
+            if phone and not is_valid_phone(phone):
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Неверный формат телефона'})
+                }
+
+            if email and not is_valid_email(email):
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Неверный формат email'})
+                }
             
             database_url = os.environ.get('DATABASE_URL')
             if not database_url:
@@ -64,7 +155,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             conn = psycopg2.connect(database_url)
             cur = conn.cursor()
-            
+
             insert_query = '''
                 INSERT INTO user_consents 
                 (full_name, phone, email, cookies_accepted, terms_accepted, privacy_accepted, ip_address, user_agent)
@@ -89,14 +180,34 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             conn.commit()
             cur.close()
             conn.close()
-            
+            try:
+                conn2 = psycopg2.connect(database_url)
+                cur2 = conn2.cursor()
+                cur2.execute('''
+                    INSERT INTO user_consents_history 
+                    (consent_id, full_name, phone, email, cookies_accepted, terms_accepted, privacy_accepted, ip_address, user_agent)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ''', (
+                    consent_id,
+                    full_name,
+                    phone,
+                    email,
+                    cookies,
+                    terms,
+                    privacy,
+                    ip_address,
+                    user_agent
+                ))
+                conn2.commit()
+                cur2.close()
+                conn2.close()
+            except Exception as e:
+                log_event('consent_history_error', {'error': str(e), 'consent_id': consent_id})
+
             # Отправка уведомления в Telegram (не блокирующая, с коротким таймаутом)
             telegram_success = False
             try:
-                telegram_bot_token = get_secret('TELEGRAM_BOT_TOKEN')
-                telegram_chat_id = get_secret('TELEGRAM_CHAT_ID')
-                if telegram_bot_token and telegram_chat_id:
-                    telegram_message = f'''
+                telegram_message = f'''
 ✅ Новое согласие от пользователя
 👤 Имя: {full_name}
 📞 Телефон: {phone or 'не указан'}
@@ -107,31 +218,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 🌐 IP: {ip_address}
 🆔 ID: {consent_id}
 '''
-                    telegram_url = f'https://api.telegram.org/bot{telegram_bot_token}/sendMessage'
-                    telegram_data = {
-                        'chat_id': telegram_chat_id,
-                        'text': telegram_message,
-                        'parse_mode': 'HTML'
-                    }
-                    # Уменьшаем таймаут до 3 секунд
-                    telegram_request = urllib.request.Request(
-                        telegram_url,
-                        data=json.dumps(telegram_data).encode('utf-8'),
-                        headers={'Content-Type': 'application/json'}
-                    )
-                    # Используем socket timeout и общий timeout
-                    import socket
-                    socket.setdefaulttimeout(3.0)
-                    with urllib.request.urlopen(telegram_request, timeout=3) as response:
-                        telegram_result = json.loads(response.read().decode('utf-8'))
-                        telegram_success = telegram_result.get('ok', False)
-            except urllib.error.URLError as e:
-                print(f'Telegram URL error (timeout?): {str(e)}')
-                # Не критично, просто не отправлено
+                threading.Thread(target=_send_telegram, args=({'text': telegram_message},), daemon=True).start()
+                telegram_success = True
             except Exception as e:
-                print(f'Telegram error: {str(e)}')
-                # Игнорируем ошибку, чтобы не влиять на сохранение согласия
-            
+                log_event('consent_telegram_spawn_error', {'error': str(e)})
             return {
                 'statusCode': 200,
                 'headers': {

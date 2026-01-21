@@ -5,6 +5,16 @@ from typing import Dict, Any
 import psycopg2
 import base64
 
+from _shared.security import (
+    sanitize_text,
+    is_valid_phone,
+    is_valid_email,
+    rate_limited,
+    validate_origin,
+    check_honeypot,
+)
+from _shared.logging import log_event
+
 _secret_cache = {}
 
 def get_secret(key: str) -> str:
@@ -68,24 +78,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     headers = event.get('headers', {})
     origin = headers.get('origin', headers.get('Origin', ''))
     referer = headers.get('referer', headers.get('Referer', ''))
-    
-    allowed_domains = [
-        'centerai.tech',
-        'www.centerai.tech',
-        'centerai-tech.web.app',
-        'centerai-tech.firebaseapp.com',
-        'preview--cav-bitrix-portfolio.poehali.dev',
-        'poehali.dev',
-        'localhost'
-    ]
-    
-    is_allowed = False
-    for domain in allowed_domains:
-        if domain in origin or domain in referer:
-            is_allowed = True
-            break
-    
-    if not is_allowed:
+
+    if not validate_origin(origin) and not validate_origin(referer):
         return {
             'statusCode': 403,
             'headers': {
@@ -94,13 +88,49 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             },
             'body': json.dumps({'error': 'Forbidden: Invalid origin'})
         }
-    
+
     body_data = json.loads(event.get('body', '{}'))
-    
-    name: str = body_data.get('name', 'Не указано')
-    phone: str = body_data.get('phone', 'Не указано')
-    form_type: str = body_data.get('type', 'contact_form')
-    timestamp: str = body_data.get('timestamp', '')
+
+    if check_honeypot(body_data):
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': 'Bot detected'})
+        }
+
+    ip_address = event.get('requestContext', {}).get('identity', {}).get('sourceIp', 'unknown')
+    if rate_limited(f'contact-form:{ip_address}'):
+        return {
+            'statusCode': 429,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': 'Rate limit exceeded'})
+        }
+
+    name: str = sanitize_text(body_data.get('name', 'Не указано'))
+    phone: str = sanitize_text(body_data.get('phone', 'Не указано'))
+    email: str = sanitize_text(body_data.get('email', ''))
+    form_type: str = sanitize_text(body_data.get('type', 'contact_form'))
+    timestamp: str = sanitize_text(body_data.get('timestamp', ''))
+
+    if not is_valid_phone(phone):
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Неверный формат телефона'})
+        }
+
+    if email and not is_valid_email(email):
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Неверный формат email'})
+        }
     
     # Битрикс24
     bitrix_webhook = get_secret('BITRIX24_WEBHOOK_URL') or get_secret('bitrix24_webhook_url') or ''
@@ -126,7 +156,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 bitrix_result = json.loads(response.read().decode('utf-8'))
                 bitrix_success = bitrix_result.get('result', False)
         except Exception as e:
-            print(f'Bitrix24 error: {str(e)}')
+            log_event('contact_form_bitrix_error', {'error': str(e), 'body': body_data})
     
     # Telegram
     telegram_success = False
@@ -161,7 +191,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 telegram_result = json.loads(response.read().decode('utf-8'))
                 telegram_success = telegram_result.get('ok', False)
         except Exception as e:
-            print(f'Telegram error: {str(e)}')
+            log_event('contact_form_telegram_error', {'error': str(e), 'body': body_data})
     
     return {
         'statusCode': 200,

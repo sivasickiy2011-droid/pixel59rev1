@@ -147,8 +147,10 @@ const Contacts = () => {
     name: '',
     phone: ''
   });
+  const [honeypot] = useState('');
+  const [captchaValue, setCaptchaValue] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error' | 'rateLimit'>('idle');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,6 +160,22 @@ const Contacts = () => {
         description: 'Для отправки заявки необходимо принять согласие на использование cookies'
       });
       showConsentMessage();
+      return;
+    }
+
+    if (honeypot) {
+      setSubmitStatus('error');
+      toast.error('Подозрительное поведение', {
+        description: 'Проверка honeypot обнаружила бот'
+      });
+      return;
+    }
+
+    if (captchaValue.trim() !== '7') {
+      setSubmitStatus('error');
+      toast.error('Неправильный ответ на капчу', {
+        description: 'Попробуйте еще раз'
+      });
       return;
     }
 
@@ -171,9 +189,19 @@ const Contacts = () => {
         body: JSON.stringify({
           type: 'contact_form',
           ...formData,
+          captcha: captchaValue,
+          botField: honeypot,
           timestamp: new Date().toISOString()
         })
       });
+
+      if (response.status === 429) {
+        setSubmitStatus('rateLimit');
+        toast.error('Превышен лимит', {
+          description: 'Отправьте заявку через минуту'
+        });
+        return;
+      }
 
       if (!response.ok) {
         throw new Error('Ошибка отправки');
@@ -181,6 +209,7 @@ const Contacts = () => {
 
       setSubmitStatus('success');
       setFormData({ name: '', phone: '' });
+      setCaptchaValue('');
       toast.success('Заявка отправлена!', {
         description: 'Мы свяжемся с вами в ближайшее время'
       });

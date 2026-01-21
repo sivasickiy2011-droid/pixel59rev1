@@ -6,6 +6,15 @@ from typing import Dict, Any, List
 import psycopg2
 import base64
 
+from _shared.security import (
+    sanitize_text,
+    is_valid_phone,
+    is_valid_email,
+    rate_limited,
+    validate_origin,
+    check_honeypot,
+)
+
 _secret_cache = {}
 
 def get_secret(key: str) -> str:
@@ -69,24 +78,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     headers = event.get('headers', {})
     origin = headers.get('origin', headers.get('Origin', ''))
     referer = headers.get('referer', headers.get('Referer', ''))
-    
-    allowed_domains = [
-        'centerai.tech',
-        'www.centerai.tech',
-        'centerai-tech.web.app',
-        'centerai-tech.firebaseapp.com',
-        'preview--cav-bitrix-portfolio.poehali.dev',
-        'poehali.dev',
-        'localhost'
-    ]
-    
-    is_allowed = False
-    for domain in allowed_domains:
-        if domain in origin or domain in referer:
-            is_allowed = True
-            break
-    
-    if not is_allowed:
+
+    if not validate_origin(origin) and not validate_origin(referer):
         return {
             'statusCode': 403,
             'headers': {
@@ -95,16 +88,51 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             },
             'body': json.dumps({'error': 'Forbidden: Invalid origin'})
         }
-    
+
     body_data = json.loads(event.get('body', '{}'))
-    
+
+    if check_honeypot(body_data):
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': 'Bot detected'})
+        }
+
+    ip_address = event.get('requestContext', {}).get('identity', {}).get('sourceIp', 'unknown')
+    if rate_limited(f'submit-order:{ip_address}'):
+        return {
+            'statusCode': 429,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': 'Rate limit exceeded'})
+        }
+
     total: float = body_data.get('total', 0)
     services: List[str] = body_data.get('services', [])
     is_partner: bool = body_data.get('isPartner', False)
     discount: int = body_data.get('discount', 0)
-    contact_name: str = body_data.get('name', 'Не указано')
-    contact_phone: str = body_data.get('phone', 'Не указано')
-    contact_email: str = body_data.get('email', 'Не указано')
+    contact_name: str = sanitize_text(body_data.get('name', 'Не указано'))
+    contact_phone: str = sanitize_text(body_data.get('phone', 'Не указано'))
+    contact_email: str = sanitize_text(body_data.get('email', 'Не указано'))
+
+    if not is_valid_phone(contact_phone):
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Неверный формат телефона'})
+        }
+
+    if contact_email and not is_valid_email(contact_email):
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Неверный формат email'})
+        }
     
     bitrix_webhook = get_secret('BITRIX24_WEBHOOK_URL') or get_secret('bitrix24_webhook_url') or 'https://itpood.ru/rest/1/ben0wm7xdr8zsore/'
     
