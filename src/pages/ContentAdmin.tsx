@@ -4,9 +4,10 @@ import AdminLayout from '@/components/AdminLayout';
 import PartnerLogosAdmin from './PartnerLogosAdmin';
 import PortfolioAdmin from './PortfolioAdmin';
 import ServicesAdmin from './ServicesAdmin';
+import NewsAdmin from '@/components/admin/NewsAdmin';
 
 const ContentAdmin = () => {
-  const [activeTab, setActiveTab] = useState('services');
+  const [activeTab, setActiveTab] = useState('news');
 
   return (
     <AdminLayout>
@@ -15,30 +16,40 @@ const ContentAdmin = () => {
           <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
             Управление контентом
           </h1>
-          <p className="text-gray-400">Услуги, партнёры и портфолио проектов</p>
+          <p className="text-gray-400">Услуги, партнёры, портфолио и новости</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full max-w-2xl grid-cols-3 bg-gray-800/50 border border-gray-700">
-            <TabsTrigger 
+          <TabsList className="grid w-full max-w-2xl grid-cols-4 bg-gray-800/50 border border-gray-700">
+            <TabsTrigger
+              value="news"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
+              Новости
+            </TabsTrigger>
+            <TabsTrigger
               value="services"
               className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
             >
               Услуги
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="partner-logos"
               className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
             >
               Логотипы партнёров
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="portfolio"
               className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
             >
               Портфолио
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="news" className="mt-6">
+            <NewsAdmin />
+          </TabsContent>
 
           <TabsContent value="services" className="mt-6">
             <ServicesAdmin isEmbedded={true} />

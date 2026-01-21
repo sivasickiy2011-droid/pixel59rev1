@@ -43,7 +43,7 @@ export const uploadImage = async ({
         const response = await fetch(UPLOAD_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64, filename: file.name, storage_type: 's3', folder: 'portfolio' })
+          body: JSON.stringify({ image: base64, filename: file.name, storage_type: 'local', folder: 'portfolio' })
         });
         
         console.log('[PortfolioModal] Response status:', response.status);
@@ -107,7 +107,7 @@ export const uploadGalleryImage = async ({
         const response = await fetch(UPLOAD_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64, filename: file.name, storage_type: 's3', folder: 'portfolio' })
+          body: JSON.stringify({ image: base64, filename: file.name, storage_type: 'local', folder: 'portfolio' })
         });
         
         console.log('[PortfolioModal] Response status:', response.status);

@@ -359,7 +359,9 @@ const News = () => {
               </p>
 
               <div className="prose prose-lg max-w-none dark:prose-invert dark:[text-shadow:0_1px_6px_rgba(0,0,0,0.3)]">
-                <div className="text-gray-700 dark:text-gray-300 leading-relaxed" dangerouslySetInnerHTML={{ __html: selectedNews.content }} />
+                <div className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                  {cleanHtml(selectedNews.content)}
+                </div>
               </div>
 
               <div className="pt-6 border-t border-gray-200 dark:border-gray-800">

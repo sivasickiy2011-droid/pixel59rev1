@@ -21,6 +21,7 @@ sudo chmod -R 755 /usr/share/nginx/html/
 # Перезапустить сервисы
 pm2 restart api
 pm2 restart gatevey
+pm2 restart ollama
 sudo systemctl restart nginx
 
 echo "✅ Готово!"

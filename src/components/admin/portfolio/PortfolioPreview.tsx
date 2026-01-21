@@ -18,17 +18,22 @@ const getPreviewDimensions = (viewMode: ViewMode) => {
   }
 };
 
+const isPdfUrl = (url: string) => url.toLowerCase().endsWith('.pdf') || url.includes('application/pdf');
+
 export const PortfolioPreview = ({
   project,
   viewMode,
   setViewMode,
 }: PortfolioPreviewProps) => {
+  const mainImageUrl = project.carousel_image_url || project.image_url || project.preview_image_url;
+  const isPdf = mainImageUrl && isPdfUrl(mainImageUrl);
+
   return (
     <div className="border border-gradient-start/30 rounded-lg p-4 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900">
       <div className="flex items-center justify-between mb-3">
         <h4 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
           <Icon name="Eye" size={18} />
-          Предпросмотр
+          Предпросмотр (изображения, PDF, сайт)
         </h4>
         <div className="flex gap-2">
           <Button
@@ -62,13 +67,24 @@ export const PortfolioPreview = ({
       </div>
       
       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 overflow-auto">
-        {(project.carousel_image_url || project.preview_image_url || project.image_url) ? (
+        {mainImageUrl ? (
           <div style={getPreviewDimensions(viewMode)} className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
-            <img 
-              src={project.carousel_image_url || project.image_url || project.preview_image_url}
-              alt="Preview"
-              className="w-full h-full object-cover"
-            />
+            {isPdf ? (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-800 p-4">
+                <Icon name="FileText" size={64} className="text-gray-400 mb-4" />
+                <h3 className="text-xl font-semibold mb-2">PDF Документ</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">Этот файл не может быть отображён в предпросмотре</p>
+                <a href={mainImageUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                  Открыть PDF в новой вкладке
+                </a>
+              </div>
+            ) : (
+              <img
+                src={mainImageUrl}
+                alt="Preview"
+                className="w-full h-full object-cover"
+              />
+            )}
           </div>
         ) : project.website_url ? (
           <div style={getPreviewDimensions(viewMode)} className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
@@ -83,7 +99,7 @@ export const PortfolioPreview = ({
           <div className="flex items-center justify-center h-64 text-gray-400 dark:text-gray-500">
             <div className="text-center">
               <Icon name="ImageOff" size={48} className="mx-auto mb-2 opacity-50" />
-              <p>Загрузите изображение или укажите URL</p>
+              <p>Загрузите изображение, PDF или укажите URL</p>
             </div>
           </div>
         )}

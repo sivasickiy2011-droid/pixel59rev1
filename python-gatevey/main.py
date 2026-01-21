@@ -69,13 +69,15 @@ UUID_MAPPING = {
     
     # News
     "91a16400-6baa-4748-9387-c7cdad64ce9c": "services-admin",
-    
+    "7aa533b8-b464-4b36-bd36-9c34cb6d0b8e": "news-admin",
+    "c5a1b2d3-e4f5-6789-abcd-ef0123456789": "news-admin-crud",
+
     # Track
     "9a3097d8-c2ab-4acb-917e-a6fb88252298": "track-visit",
-    
+
     # Secure settings
     "c61d607d-a45d-40ee-88b9-34da6d3ca3e7": "secure-settings",
-    
+
     # Additional from func2url.json
     "0254ff37-a984-465b-873c-b4aabdc73b96": "seo-analyze",
     "f81db335-2453-41e1-9b1e-aaf4c61ea06f": "seo-apply",
@@ -83,7 +85,6 @@ UUID_MAPPING = {
     "003b9991-d7d8-4f5d-8257-dee42fad0f91": "contact-form",
     "a074b7ff-c52b-4b46-a194-d991148dfa59": "partner-auth",
     "108ae5ed-e950-40bd-9b28-9149ddf9dae1": "telegram-password-reset",
-    "7aa533b8-b464-4b36-bd36-9c34cb6d0b8e": "news-admin",
 }
 
 def load_handler(func_name):

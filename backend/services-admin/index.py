@@ -51,9 +51,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             category = event.get('queryStringParameters', {}).get('category') if event.get('queryStringParameters') else None
             
             if category:
-                category_escaped = category.replace("'", "''")
                 cur.execute(
-                    f"SELECT * FROM services WHERE category = '{category_escaped}' ORDER BY display_order ASC"
+                    "SELECT * FROM services WHERE category = %s ORDER BY display_order ASC",
+                    (category,)
                 )
             else:
                 cur.execute("SELECT * FROM services ORDER BY category, display_order ASC")
@@ -109,14 +109,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
-            service_id_escaped = service_id.replace("'", "''")
-            category_escaped = category.replace("'", "''")
-            title_escaped = title.replace("'", "''")
-            description_escaped = description.replace("'", "''")
-            
             cur.execute(
-                f"""INSERT INTO services (service_id, category, title, description, price, display_order)
-                   VALUES ('{service_id_escaped}', '{category_escaped}', '{title_escaped}', '{description_escaped}', {price}, {display_order}) RETURNING id"""
+                """INSERT INTO services (service_id, category, title, description, price, display_order)
+                   VALUES (%s, %s, %s, %s, %s, %s) RETURNING id""",
+                (service_id, category, title, description, price, display_order)
             )
             
             new_id = cur.fetchone()['id']
@@ -156,25 +152,29 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
             
             update_fields = []
+            params = []
             
             if title is not None:
-                title_escaped = title.replace("'", "''")
-                update_fields.append(f"title = '{title_escaped}'")
+                update_fields.append('title = %s')
+                params.append(title)
             if description is not None:
-                description_escaped = description.replace("'", "''")
-                update_fields.append(f"description = '{description_escaped}'")
+                update_fields.append('description = %s')
+                params.append(description)
             if price is not None:
-                update_fields.append(f"price = {price}")
+                update_fields.append('price = %s')
+                params.append(price)
             if is_active is not None:
-                update_fields.append(f"is_active = {is_active}")
+                update_fields.append('is_active = %s')
+                params.append(is_active)
             if display_order is not None:
-                update_fields.append(f"display_order = {display_order}")
+                update_fields.append('display_order = %s')
+                params.append(display_order)
             
             update_fields.append('updated_at = CURRENT_TIMESTAMP')
-            service_id_escaped = service_id.replace("'", "''")
+            params.append(service_id)  # для WHERE
             
-            query = f"UPDATE services SET {', '.join(update_fields)} WHERE service_id = '{service_id_escaped}'"
-            cur.execute(query)
+            query = f"UPDATE services SET {', '.join(update_fields)} WHERE service_id = %s"
+            cur.execute(query, tuple(params))
             
             conn.commit()
             cur.close()
@@ -206,8 +206,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
-            service_id_escaped = service_id.replace("'", "''")
-            cur.execute(f"DELETE FROM services WHERE service_id = '{service_id_escaped}'")
+            cur.execute("DELETE FROM services WHERE service_id = %s", (service_id,))
             
             conn.commit()
             cur.close()

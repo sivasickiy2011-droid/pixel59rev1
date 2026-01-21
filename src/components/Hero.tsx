@@ -30,7 +30,7 @@ const Hero = () => {
   }, []);
 
   return (
-    <header className="header relative overflow-hidden min-h-screen flex flex-col -mt-[1px] bg-white dark:bg-gray-800 rounded-b-[30px]">
+    <header className="header relative overflow-hidden min-h-[calc(100vh-80px)] md:min-h-screen flex flex-col bg-white dark:bg-gray-800 rounded-b-[30px] pt-20 md:pt-0">
       <div className={`absolute inset-0 ${shouldAnimate ? 'animated-gradient-bg' : 'bg-gradient-to-br from-indigo-50 via-purple-50 to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900'}`} />
       
       {shouldAnimate && (
@@ -87,9 +87,9 @@ const Hero = () => {
         </div>
       </div>
 
-      <div className="relative max-w-[1500px] w-full lg:px-[50px] px-4 mx-auto py-8 flex-1 flex flex-col">
+      <div className="relative max-w-[1500px] w-full lg:px-[50px] px-4 mx-auto py-8 flex-1 flex flex-col pt-24 md:pt-8">
         <div className="grid lg:grid-cols-2 gap-6 xl:gap-12 2xl:gap-[76px] items-center flex-1">
-          <div className="header-left space-y-4 md:space-y-6 xl:space-y-8 relative z-10 flex flex-col justify-center lg:mt-0 mt-[100px] sm:mt-[120px]">
+          <div className="header-left space-y-4 md:space-y-6 xl:space-y-8 relative z-10 flex flex-col justify-center lg:mt-0 mt-16 sm:mt-20">
             <div className="header-bottom space-y-3 md:space-y-4 xl:space-y-6">
               <div className="space-y-2 md:space-y-3 xl:space-y-4">
                 <h1 className="text-[clamp(48px,10vw,140px)] font-black leading-[0.9] m-0 bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end bg-clip-text text-transparent animate-gradient-shift bg-[length:200%_auto]">

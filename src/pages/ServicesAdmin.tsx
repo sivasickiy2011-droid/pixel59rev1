@@ -51,7 +51,8 @@ const ServicesAdmin = ({ isEmbedded = false }: ServicesAdminProps) => {
         const data = await response.json();
         setServices(data.services);
       } else {
-        setError('Не удалось загрузить услуги');
+        const errorData = await response.json();
+        setError(errorData.error || 'Не удалось загрузить услуги');
       }
     } catch (err) {
       setError('Ошибка при загрузке услуг');
@@ -79,7 +80,8 @@ const ServicesAdmin = ({ isEmbedded = false }: ServicesAdminProps) => {
         setIsDialogOpen(false);
         setEditingService(null);
       } else {
-        setError('Не удалось сохранить услугу');
+        const errorData = await response.json();
+        setError(errorData.error || 'Не удалось сохранить услугу');
       }
     } catch (err) {
       setError('Ошибка при сохранении услуги');
@@ -101,7 +103,8 @@ const ServicesAdmin = ({ isEmbedded = false }: ServicesAdminProps) => {
       if (response.ok) {
         await loadServices();
       } else {
-        setError('Не удалось удалить услугу');
+        const errorData = await response.json();
+        setError(errorData.error || 'Не удалось удалить услугу');
       }
     } catch (err) {
       setError('Ошибка при удалении услуги');
@@ -124,7 +127,8 @@ const ServicesAdmin = ({ isEmbedded = false }: ServicesAdminProps) => {
       if (response.ok) {
         await loadServices();
       } else {
-        setError('Не удалось изменить статус услуги');
+        const errorData = await response.json();
+        setError(errorData.error || 'Не удалось изменить статус услуги');
       }
     } catch (err) {
       setError('Ошибка при изменении статуса');

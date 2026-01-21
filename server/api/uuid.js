@@ -28,6 +28,7 @@ const backendUUIDs = new Set([
   '80536dd3-4799-47a9-893a-a756a259460e', // consent
   '265f74c3-c0a3-4d44-b005-9119dff641cf', // news-feed
   '7aa533b8-b464-4b36-bd36-9c34cb6d0b8e', // news-admin
+  'c5a1b2d3-e4f5-6789-abcd-ef0123456789', // news-admin-crud
 ]);
 
 async function proxyToGatevey(req, res) {

@@ -24,11 +24,13 @@ export const PortfolioGallery = ({
   onAddImageByUrl,
   onRemoveGalleryImage,
 }: PortfolioGalleryProps) => {
+  const isPdfUrl = (url: string) => url.toLowerCase().endsWith('.pdf') || url.includes('application/pdf');
+
   return (
     <div className="border border-gradient-start/30 rounded-lg p-4 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-900">
       <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
         <Icon name="Images" size={18} />
-        Галерея проекта (до 5 изображений)
+        Галерея проекта (до 5 изображений и PDF)
         <span className="text-xs text-gray-500 ml-2">
           {galleryImages.length}/5
         </span>
@@ -38,7 +40,7 @@ export const PortfolioGallery = ({
         <div className="flex gap-2">
           <Input
             type="file"
-            accept="image/*"
+            accept="image/*,.pdf"
             disabled={isUploading || galleryImages.length >= 5}
             onChange={(e) => {
               const file = e.target.files?.[0];
@@ -53,7 +55,7 @@ export const PortfolioGallery = ({
           <Input
             value={newImageUrl}
             onChange={(e) => setNewImageUrl(e.target.value)}
-            placeholder="Или вставьте URL изображения"
+            placeholder="Или вставьте URL изображения или PDF"
             disabled={galleryImages.length >= 5}
             onKeyDown={(e) => e.key === 'Enter' && onAddImageByUrl()}
           />
@@ -71,7 +73,15 @@ export const PortfolioGallery = ({
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
             {galleryImages.map((url, index) => (
               <div key={index} className="relative group rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                <img src={url} alt={`Gallery ${index + 1}`} className="w-full h-32 object-cover" />
+                {isPdfUrl(url) ? (
+                  <div className="w-full h-32 flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-800">
+                    <Icon name="FileText" size={48} className="text-gray-400 mb-2" />
+                    <span className="text-sm font-medium">PDF Документ</span>
+                    <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline mt-1">Открыть</a>
+                  </div>
+                ) : (
+                  <img src={url} alt={`Gallery ${index + 1}`} className="w-full h-32 object-cover" />
+                )}
                 <button
                   onClick={() => onRemoveGalleryImage(index)}
                   className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"

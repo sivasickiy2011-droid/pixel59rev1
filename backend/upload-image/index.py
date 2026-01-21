@@ -5,10 +5,11 @@ from botocore.config import Config
 import base64
 import uuid
 from typing import Dict, Any
+import pathlib
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
-    Загрузка изображений в S3 или Data URI
+    Загрузка изображений в S3, Data URI или локальное хранилище
     Business: Универсальная функция загрузки изображений для логотипов, портфолио и других файлов
     Args: event - dict с httpMethod='POST', body содержит base64 изображение, filename и опциональный storage_type
           context - объект с request_id и другими атрибутами
@@ -44,7 +45,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         body = json.loads(event.get('body', '{}'))
         image_base64 = body.get('image')
         filename = body.get('filename', 'image.png')
-        storage_type = body.get('storage_type', 's3')  # 's3' или 'data_uri'
+        storage_type = body.get('storage_type', 's3')  # 's3', 'data_uri' или 'local'
         folder = body.get('folder', 'images')  # папка в S3 (portfolio, logos, etc)
         
         if not image_base64:
@@ -66,7 +67,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'png': 'image/png',
             'gif': 'image/gif',
             'webp': 'image/webp',
-            'svg': 'image/svg+xml'
+            'svg': 'image/svg+xml',
+            'pdf': 'application/pdf'
         }
         content_type = content_type_map.get(file_ext, 'image/png')
         
@@ -82,6 +84,38 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({
                     'url': data_uri,
                     'type': 'data_uri'
+                }),
+                'isBase64Encoded': False
+            }
+        
+        # Локальное хранилище (для хранения файлов на сайте)
+        if storage_type == 'local':
+            # Директория для загрузок относительно корня проекта
+            upload_dir = pathlib.Path('public/uploads')
+            upload_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Генерируем уникальное имя файла
+            unique_filename = f"{uuid.uuid4()}.{file_ext}"
+            file_path = upload_dir / unique_filename
+            
+            # Декодируем base64 и записываем файл
+            image_data = base64.b64decode(image_base64)
+            with open(file_path, 'wb') as f:
+                f.write(image_data)
+            
+            # Относительный URL для доступа через веб-сервер
+            image_url = f"/uploads/{unique_filename}"
+            
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({
+                    'url': image_url,
+                    'filename': unique_filename,
+                    'type': 'local'
                 }),
                 'isBase64Encoded': False
             }
