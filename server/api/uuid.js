@@ -178,6 +178,7 @@ function getUUIDConfig(uuid) {
     'f7cef033-563d-43d4-bc11-18ea42d54a00': { method: 'POST', path: '/seo/analyze' },
     'f75a6b04-8c4d-40ca-b0a1-adc0b31d79dd': { method: 'POST', path: '/seo/apply' },
     '91a16400-6baa-4748-9387-c7cdad64ce9c': { method: 'BOTH', path: '/news' },
+    'c5a1b2d3-e4f5-6789-abcd-ef0123456789': { method: 'BOTH', path: '/news-admin-crud' },
     '4dbcd084-f89e-4737-be41-9371059c6e4d': { method: 'GET', path: '/services' },
     '5e53ea79-1c81-4c3f-847b-e8a82a5743c2': { method: 'GET', path: '/legal/terms' },
     '961bcfd3-a4a3-4d7e-b238-7d19be6f98e1': { method: 'GET', path: '/legal/privacy' },
@@ -216,10 +217,49 @@ router.post('/:uuid', async (req, res) => {
       case '/bot/log': return handleBotLog(req, res);
       case '/auth/partner': return handlePartnerAuth(req, res);
       case '/news': return handleNewsCreate(req, res);
+      case '/news-admin-crud': return handleNewsCreate(req, res);
       default: return res.json({ success: true });
     }
   } catch (error) {
     console.error('UUID POST error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put('/:uuid', async (req, res) => {
+  const { uuid } = req.params;
+  if (backendUUIDs.has(uuid)) {
+    return proxyToGatevey(req, res);
+  }
+  const config = getUUIDConfig(uuid);
+  if (!config) return res.status(404).json({ error: 'UUID not found' });
+  
+  try {
+    switch (config.path) {
+      case '/news-admin-crud': return proxyToGatevey(req, res);
+      default: return res.status(405).json({ error: 'Method not allowed' });
+    }
+  } catch (error) {
+    console.error('UUID PUT error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.patch('/:uuid', async (req, res) => {
+  const { uuid } = req.params;
+  if (backendUUIDs.has(uuid)) {
+    return proxyToGatevey(req, res);
+  }
+  const config = getUUIDConfig(uuid);
+  if (!config) return res.status(404).json({ error: 'UUID not found' });
+  
+  try {
+    switch (config.path) {
+      case '/news-admin-crud': return proxyToGatevey(req, res);
+      default: return res.status(405).json({ error: 'Method not allowed' });
+    }
+  } catch (error) {
+    console.error('UUID PATCH error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -242,6 +282,7 @@ router.get('/:uuid', async (req, res) => {
       case '/analytics/metrika': return handleMetrika(req, res);
       case '/analytics/webmaster': return handleWebmaster(req, res);
       case '/news': return handleNews(req, res);
+      case '/news-admin-crud': return handleNews(req, res);
       case '/services': return handleServices(req, res);
       case '/consent': return handleConsent(req, res);
       case '/legal/terms': return handleLegal(req, res, 'terms');
@@ -253,6 +294,25 @@ router.get('/:uuid', async (req, res) => {
     }
   } catch (error) {
     console.error('UUID GET error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete('/:uuid', async (req, res) => {
+  const { uuid } = req.params;
+  if (backendUUIDs.has(uuid)) {
+    return proxyToGatevey(req, res);
+  }
+  const config = getUUIDConfig(uuid);
+  if (!config) return res.status(404).json({ error: 'UUID not found' });
+  
+  try {
+    switch (config.path) {
+      case '/news-admin-crud': return proxyToGatevey(req, res);
+      default: return res.status(405).json({ error: 'Method not allowed' });
+    }
+  } catch (error) {
+    console.error('UUID DELETE error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -269,6 +329,7 @@ router.delete('/:uuid/:id', async (req, res) => {
     switch (config.path) {
       case '/partners/logos': return handlePartnerLogoDelete(req, res);
       case '/news': return handleNewsDelete(req, res);
+      case '/news-admin-crud': return proxyToGatevey(req, res);
       default: return res.json({ success: true });
     }
   } catch (error) {
