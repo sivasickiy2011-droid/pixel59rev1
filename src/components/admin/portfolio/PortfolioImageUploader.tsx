@@ -2,6 +2,13 @@ import { PortfolioProject } from './types';
 
 const UPLOAD_URL = '/api/6f0735b1-7477-4660-b2b0-0b694b4f36ea';
 
+const extractBase64Payload = (value: string) => {
+  if (value.includes(',')) {
+    return value.split(',')[1] || '';
+  }
+  return value;
+};
+
 interface UploadImageParams {
   file: File;
   field: 'carousel_image_url' | 'preview_image_url' | 'image_url';
@@ -34,7 +41,7 @@ export const uploadImage = async ({
     reader.onloadend = async () => {
       console.log('[PortfolioModal] File read complete');
       const base64Full = reader.result as string;
-      const base64 = base64Full.split(',')[1];
+      const base64 = extractBase64Payload(base64Full);
       console.log('[PortfolioModal] Base64 length:', base64.length);
       
       try {
@@ -98,7 +105,7 @@ export const uploadGalleryImage = async ({
     reader.onloadend = async () => {
       console.log('[PortfolioModal] Gallery file read complete');
       const base64Full = reader.result as string;
-      const base64 = base64Full.split(',')[1];
+      const base64 = extractBase64Payload(base64Full);
       console.log('[PortfolioModal] Base64 length:', base64.length);
       
       try {

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
 const bcrypt = require('bcrypt');
+const { generateToken, decodeAdminToken } = require('../middleware/auth');
 
 const backendUUIDs = new Set([
   'f4905f63-ce85-4850-9f3a-2677d35f7d16', // track-visit
@@ -33,14 +34,15 @@ const backendUUIDs = new Set([
 
 async function proxyToGatevey(req, res) {
   const { uuid } = req.params;
-  const targetUrl = `http://localhost:3002/api/${uuid}`;
+  const targetUrl = `http://127.0.0.1:3002/api/${uuid}`;
   const method = req.method;
   const headers = { ...req.headers, host: 'localhost:3002' };
   // Удаляем заголовки, которые могут мешать
   delete headers['content-length'];
   delete headers['host'];
+  delete headers['connection'];
   
-  const body = ['POST', 'PUT', 'PATCH'].includes(method) ? JSON.stringify(req.body) : undefined;
+  const body = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) ? JSON.stringify(req.body) : undefined;
   
   try {
     const response = await fetch(targetUrl, {
@@ -60,9 +62,11 @@ async function handleAuthAdmin(req, res) {
   const { password } = req.body;
   const result = await pool.query('SELECT * FROM users LIMIT 1');
   if (result.rows.length === 0) return res.status(401).json({ error: 'No users' });
-  const valid = await bcrypt.compare(password, result.rows[0].password_hash);
+  const user = result.rows[0];
+  const valid = await bcrypt.compare(password, user.password_hash);
   if (valid) {
-    return res.json({ success: true, token: 'fake-jwt', user: { id: result.rows[0].id, username: result.rows[0].username } });
+    const token = generateToken({ id: user.id, username: user.username, role: 'admin' }, '7d');
+    return res.json({ success: true, token, user: { id: user.id, username: user.username } });
   }
   return res.status(401).json({ error: 'Invalid password' });
 }
@@ -148,8 +152,10 @@ async function handleNewsDelete(req, res) {
   await pool.query('DELETE FROM news WHERE id = $1', [id]);
   return res.json({ success: true });
 }
-async function handleServices(req, res) { return res.json([]); }
-async function handleConsent(req, res) { return res.json([]); }
+async function handleServices(req, res) { return res.json({ services: [] }); }
+async function handleConsent(req, res) {
+  return res.json({ consents: [] });
+}
 async function handleLegal(req, res, type) { return res.json({ content: 'Content' }); }
 async function handleUpload(req, res) { return res.json({ success: true, url: '/img/uploaded.png' }); }
 async function handleTrackVisit(req, res) { return res.json({ success: true }); }
@@ -158,6 +164,27 @@ async function handlePasswords(req, res) { return res.json([]); }
 async function handleBotStats(req, res) { return res.json({ bots: 10 }); }
 async function handleBotLog(req, res) { return res.json({ success: true }); }
 async function handlePartnerAuth(req, res) { return res.json({ success: true, token: 'partner-token' }); }
+
+const adminProtectedUUIDs = new Set([
+  '80536dd3-4799-47a9-893a-a756a259460e', // consent
+  '91a16400-6baa-4748-9387-c7cdad64ce9c', // services-admin
+]);
+
+const requireAdminToken = (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized: admin token required' });
+    return false;
+  }
+
+  try {
+    decodeAdminToken(token);
+    return true;
+  } catch (err) {
+    res.status(401).json({ error: 'Unauthorized: invalid token' });
+    return false;
+  }
+};
 
 function getUUIDConfig(uuid) {
   const map = {
@@ -268,6 +295,9 @@ router.get('/:uuid', async (req, res) => {
   const { uuid } = req.params;
   if (backendUUIDs.has(uuid)) {
     return proxyToGatevey(req, res);
+  }
+  if (adminProtectedUUIDs.has(uuid) && !requireAdminToken(req, res)) {
+    return;
   }
   const config = getUUIDConfig(uuid);
   if (!config) return res.status(404).json({ error: 'Not found' });

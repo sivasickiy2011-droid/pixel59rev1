@@ -18,6 +18,11 @@ sudo rm -rf /usr/share/nginx/html/*
 sudo cp -r dist/* /usr/share/nginx/html/
 sudo chmod -R 755 /usr/share/nginx/html/
 
+# Применить Nginx конфиг из проекта
+if [ -f "./nginx.conf" ]; then
+  sudo cp ./nginx.conf /etc/nginx/nginx.conf
+fi
+
 # Перезапустить сервисы
 pm2 restart api
 pm2 restart gatevey

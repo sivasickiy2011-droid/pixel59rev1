@@ -19,6 +19,7 @@ import {
 import { PortfolioProject } from './portfolio/types';
 import { SortableProject } from './portfolio/SortableProject';
 import { PortfolioModal } from './portfolio/PortfolioModal';
+import { requireAdminAuthHeaders } from '@/utils/adminAuth';
 
 const PortfolioAdmin = () => {
   const [projects, setProjects] = useState<PortfolioProject[]>([]);
@@ -46,16 +47,19 @@ const PortfolioAdmin = () => {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch('/api/99ddd15c-93b5-4d9e-8536-31e6f6630304');
-      if (response.ok) {
-        const data = await response.json();
-        setProjects(data);
+      const response = await fetch('/api/99ddd15c-93b5-4d9e-8536-31e6f6630304', {
+        headers: requireAdminAuthHeaders(),
+      });
+        if (response.ok) {
+          const data = await response.json();
+          const normalized = Array.isArray(data) ? data : [];
+          setProjects(normalized);
+        }
+      } catch (error) {
+        console.error('Failed to fetch projects:', error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Failed to fetch projects:', error);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   useEffect(() => {
@@ -82,7 +86,7 @@ const PortfolioAdmin = () => {
           updates.map((project) =>
             fetch('/api/99ddd15c-93b5-4d9e-8536-31e6f6630304', {
               method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
+              headers: requireAdminAuthHeaders({ 'Content-Type': 'application/json' }),
               body: JSON.stringify(project),
             })
           )
@@ -107,7 +111,7 @@ const PortfolioAdmin = () => {
     try {
       const response = await fetch('/api/99ddd15c-93b5-4d9e-8536-31e6f6630304', {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: requireAdminAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(editingProject),
       });
 
@@ -128,7 +132,7 @@ const PortfolioAdmin = () => {
     try {
       const response = await fetch('/api/99ddd15c-93b5-4d9e-8536-31e6f6630304', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: requireAdminAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ id }),
       });
 
@@ -173,7 +177,7 @@ const PortfolioAdmin = () => {
       const deletePromises = Array.from(selectedProjects).map(id =>
         fetch('/api/99ddd15c-93b5-4d9e-8536-31e6f6630304', {
           method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
+          headers: requireAdminAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ id }),
         })
       );

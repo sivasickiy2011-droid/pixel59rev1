@@ -3,7 +3,7 @@ import hashlib
 import hmac
 import json
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 def base64url_encode(data: bytes) -> str:
@@ -33,7 +33,7 @@ def create_jwt(payload: Dict[str, Any], secret: str, expiry_seconds: int) -> str
     return '.'.join(segments)
 
 
-def verify_jwt(token: str, secret: str) -> Dict[str, Any] | None:
+def verify_jwt(token: str, secret: str) -> Optional[Dict[str, Any]]:
     try:
         header_b64, payload_b64, signature = token.split('.')
     except ValueError:

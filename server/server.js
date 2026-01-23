@@ -7,7 +7,7 @@ const corsMiddleware = require('./middleware/cors');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.set('trust proxy', true);
+app.set('trust proxy', 1);
 
 app.use(helmet());
 app.use(compression());

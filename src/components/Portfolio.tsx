@@ -19,6 +19,43 @@ const Portfolio = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState<PortfolioProject | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const isPdfUrl = (value?: string) => value?.toLowerCase().endsWith('.pdf') || value?.includes('application/pdf');
+
+  const renderProjectVisual = (project: PortfolioProject) => {
+    const imageCandidate = project.preview_image_url || project.carousel_image_url || project.image_url;
+    if (imageCandidate) {
+      if (isPdfUrl(imageCandidate)) {
+        return (
+          <div className="w-full h-full flex flex-col items-center justify-center text-sm text-gray-600 dark:text-gray-300">
+            <Icon name="FileText" size={48} className="text-gray-400 mb-2" />
+            PDF-документ
+          </div>
+        );
+      }
+      return (
+        <img 
+          src={imageCandidate} 
+          alt={project.title}
+          className="w-full h-full object-cover"
+        />
+      );
+    }
+    if (project.website_url) {
+      return (
+        <iframe 
+          src={project.website_url}
+          title={project.title}
+          className="w-full h-full pointer-events-none scale-50 origin-top-left"
+          style={{ width: '200%', height: '200%' }}
+        />
+      );
+    }
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-800">
+        <span className="text-gray-400">Нет изображения</span>
+      </div>
+    );
+  };
   
   useEffect(() => {
     if (selectedProject) {
@@ -32,7 +69,11 @@ const Portfolio = () => {
         const response = await fetch('/api/99ddd15c-93b5-4d9e-8536-31e6f6630304');
         if (response.ok) {
           const data = await response.json();
-          setProjects(data);
+          const normalized = Array.isArray(data) ? data : [];
+          const uniqueProjects = Array.from(
+            new Map(normalized.map((project: PortfolioProject) => [project.id, project])).values()
+          );
+          setProjects(uniqueProjects);
         }
       } catch (error) {
         console.error('Failed to fetch portfolio:', error);
@@ -80,8 +121,8 @@ const Portfolio = () => {
   const middleIndex = Math.ceil(projects.length / 2);
   const firstHalf = projects.slice(0, middleIndex);
   const secondHalf = projects.slice(middleIndex);
-  const doubledFirstHalf = [...firstHalf, ...firstHalf];
-  const doubledSecondHalf = [...secondHalf, ...secondHalf];
+  const doubledFirstHalf = firstHalf.length > 1 ? [...firstHalf, ...firstHalf] : firstHalf;
+  const doubledSecondHalf = secondHalf.length > 1 ? [...secondHalf, ...secondHalf] : secondHalf;
 
   return (
     <>
@@ -93,30 +134,13 @@ const Portfolio = () => {
             <div className="mb-8 overflow-hidden hidden md:block">
               <div className="flex gap-6 animate-marquee whitespace-nowrap">
                 {doubledFirstHalf.map((project, i) => (
-                  <button 
+                  <button
                     key={`${project.id}-${i}`}
                     onClick={() => setSelectedProject(project)}
                     className="inline-block flex-shrink-0 group"
                   >
                     <div className="w-80 h-64 rounded-2xl relative overflow-hidden border border-gray-200 dark:border-gray-700 backdrop-blur-sm transition-all duration-500 hover:scale-105 hover:shadow-2xl">
-                      {(project.preview_image_url || project.carousel_image_url || project.image_url) ? (
-                        <img 
-                          src={project.preview_image_url || project.carousel_image_url || project.image_url} 
-                          alt={project.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : project.website_url ? (
-                        <iframe 
-                          src={project.website_url}
-                          title={project.title}
-                          className="w-full h-full pointer-events-none scale-50 origin-top-left"
-                          style={{ width: '200%', height: '200%' }}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-800">
-                          <span className="text-gray-400">Нет изображения</span>
-                        </div>
-                      )}
+                      {renderProjectVisual(project)}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4">
                         <div className="text-white text-xl font-bold mb-2">
@@ -140,30 +164,13 @@ const Portfolio = () => {
             <div className="mb-8 overflow-x-auto md:hidden scroll-smooth snap-x snap-mandatory scrollbar-hide -mx-4">
               <div className="flex gap-4 px-4">
                 {projects.map((project) => (
-                  <button 
+                  <button
                     key={project.id}
                     onClick={() => setSelectedProject(project)}
                     className="inline-block flex-shrink-0 group snap-center"
                   >
                     <div className="w-[calc(100vw-3rem)] max-w-[320px] h-64 rounded-2xl relative overflow-hidden border border-gray-200 dark:border-gray-700 backdrop-blur-sm transition-all duration-500 active:scale-95">
-                      {(project.preview_image_url || project.carousel_image_url || project.image_url) ? (
-                        <img 
-                          src={project.preview_image_url || project.carousel_image_url || project.image_url} 
-                          alt={project.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : project.website_url ? (
-                        <iframe 
-                          src={project.website_url}
-                          title={project.title}
-                          className="w-full h-full pointer-events-none scale-50 origin-top-left"
-                          style={{ width: '200%', height: '200%' }}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-800">
-                          <span className="text-gray-400">Нет изображения</span>
-                        </div>
-                      )}
+                      {renderProjectVisual(project)}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                       <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
                         <div className="text-white text-xl font-bold mb-2">

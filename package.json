@@ -4,13 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-      "dev": "vite",
-      "build": "tsc && vite build",
-      "build:preview": "tsc && vite build --mode preview",
-      "preview": "vite preview",
-      "preview:preview": "vite preview --mode preview",
-      "lint": "eslint . --ext ts,tsx --report-unused-disable-directives",
-      "test": "jest"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "build:preview": "tsc && vite build --mode preview",
+    "preview": "vite preview",
+    "preview:preview": "vite preview --mode preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives",
+    "test": "jest",
+    "test:unit": "vitest run"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -73,6 +74,9 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/chart.js": "^2.9.41",
     "@types/jest": "^29.5.12",
     "@types/react": "^18.2.48",
@@ -95,6 +99,7 @@
     "tailwindcss-animate": "^1.0.7",
     "ts-jest": "^29.1.1",
     "typescript": "^5.4.5",
-    "vite": "^5.0.9"
+    "vite": "^5.0.9",
+    "vitest": "^4.0.17"
   }
 }

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { History, CheckCircle, XCircle, Activity, AlertTriangle } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
+import { requireAdminAuthHeaders } from '@/utils/adminAuth';
 
 interface LoginLog {
   id: number;
@@ -37,7 +38,9 @@ const LoginHistory = ({ isEmbedded = false }: LoginHistoryProps) => {
   const { data, isLoading } = useQuery<LoginLogsResponse>({
     queryKey: ['admin-login-logs'],
     queryFn: async () => {
-      const response = await fetch('/api/4ea0202f-2619-4cf6-bc32-78c81e7beab3');
+      const response = await fetch('/api/4ea0202f-2619-4cf6-bc32-78c81e7beab3', {
+        headers: requireAdminAuthHeaders(),
+      });
       if (!response.ok) throw new Error('Failed to fetch login logs');
       return response.json();
     },

@@ -3,7 +3,7 @@ import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime, timedelta
-from typing import Dict, Any, List
+from typing import Any, Dict, List, Optional
 
 from backend._shared.security import get_redis_client
 
@@ -30,7 +30,7 @@ def translate_image(image: str) -> str:
     return image
 
 
-def fetch_news_from_db(limit: int, offset: int, category: str | None, search: str | None) -> List[Dict[str, Any]]:
+def fetch_news_from_db(limit: int, offset: int, category: Optional[str], search: Optional[str]) -> List[Dict[str, Any]]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -51,7 +51,7 @@ def fetch_news_from_db(limit: int, offset: int, category: str | None, search: st
                       link, image_url AS image, category, published_date
                FROM news
                WHERE {where}
-               ORDER BY published_date DESC, display_order DESC
+               ORDER BY published_date DESC, created_at DESC
                LIMIT %s OFFSET %s"""
     params.extend([limit, offset])
     cur.execute(query, tuple(params))
@@ -72,13 +72,14 @@ def fetch_news_from_db(limit: int, offset: int, category: str | None, search: st
         if published:
             date_str = f"{published.day} {months[published.month]} {published.year}"
 
+        source_url_value = row.get('sourceurl') or row.get('sourceUrl') or row.get('source_url')
         news_item = {
             'id': row['id'],
             'title': row['title'],
             'excerpt': row['excerpt'] or '',
             'content': row['content'] or '',
             'source': row['source'],
-            'sourceUrl': row['sourceurl'],
+            'sourceUrl': source_url_value,
             'link': row['link'],
             'image': translate_image(row['image']),
             'category': row['category'] or 'Веб-разработка',

@@ -91,7 +91,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # Локальное хранилище (для хранения файлов на сайте)
         if storage_type == 'local':
             # Директория для загрузок относительно корня проекта
-            upload_dir = pathlib.Path('public/uploads')
+            project_root = pathlib.Path(__file__).resolve().parents[2]
+            safe_folder = ''.join(ch for ch in (folder or 'uploads') if ch.isalnum() or ch in ('-', '_'))
+            upload_dir = project_root / 'public' / 'uploads' / safe_folder
             upload_dir.mkdir(parents=True, exist_ok=True)
             
             # Генерируем уникальное имя файла
@@ -104,7 +106,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 f.write(image_data)
             
             # Относительный URL для доступа через веб-сервер
-            image_url = f"/uploads/{unique_filename}"
+            image_url = f"/uploads/{safe_folder}/{unique_filename}"
             
             return {
                 'statusCode': 200,

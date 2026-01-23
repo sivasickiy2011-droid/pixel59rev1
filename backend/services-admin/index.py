@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Dict, Any, List
+from typing import Any, Dict, List, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
@@ -12,20 +12,8 @@ from backend._shared.security import (
     is_valid_image_url,
 )
 
-def require_admin(event: Dict[str, Any]) -> Dict[str, Any] | None:
-    payload = ensure_admin_authorized(event.get('headers'))
-    if not payload:
-        return None
-    if enforce_rate_limit('services-admin', event, limit=40, window_seconds=60):
-        raise ValueError('rate_limit')
-    return payload
 
-
-def clean_input(value: str) -> str:
-    return sanitize_text(value or '')
-
-
-def require_admin(event: Dict[str, Any]) -> Dict[str, Any] | None:
+def require_admin(event: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     payload = ensure_admin_authorized(event.get('headers'))
     if not payload:
         return None
@@ -45,14 +33,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     Returns: Список услуг или результат операции
     '''
     method: str = event.get('httpMethod', 'GET')
-    
+
     if method == 'OPTIONS':
         return {
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token',
                 'Access-Control-Max-Age': '86400'
             },
             'body': '',
@@ -109,15 +97,25 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
         if method == 'GET':
-            category = event.get('queryStringParameters', {}).get('category') if event.get('queryStringParameters') else None
+            query_params = event.get('queryStringParameters') or {}
+            category = query_params.get('category')
+            include_inactive = str(query_params.get('include_inactive', '')).lower() in ('1', 'true', 'yes')
+
+            where_clauses = []
+            params: List[Any] = []
 
             if category:
-                cur.execute(
-                    "SELECT * FROM services WHERE category = %s ORDER BY display_order ASC",
-                    (category,)
-                )
-            else:
-                cur.execute("SELECT * FROM services ORDER BY category, display_order ASC")
+                where_clauses.append('category = %s')
+                params.append(category)
+
+            if not include_inactive:
+                where_clauses.append('is_active = TRUE')
+
+            where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ''
+            cur.execute(
+                f"SELECT * FROM services {where_sql} ORDER BY category, display_order ASC",
+                tuple(params)
+            )
 
             services = cur.fetchall()
             

@@ -38,7 +38,7 @@ async def update_partner_logo(id: int, request: Request):
 
 @app.get("/consent")
 async def get_consent():
-    return []
+    return {"consents": []}
 
 @app.post("/contact-form")
 async def contact_form(request: Request):
@@ -98,7 +98,7 @@ async def create_bot_log(request: Request):
 
 @app.get("/services-admin")
 async def get_services():
-    return [{"id": 1, "title": "Услуга 1"}]
+    return {"services": [{"id": 1, "title": "Услуга 1"}]}
 
 @app.post("/services-admin")
 async def create_service(request: Request):

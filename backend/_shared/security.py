@@ -1,7 +1,7 @@
 import os
 import re
 import html
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 import redis
 
 from backend.token_utils import verify_jwt
@@ -57,7 +57,7 @@ def get_admin_token(headers: Optional[Dict[str, str]]) -> Optional[str]:
     return None
 
 
-def ensure_admin_authorized(headers: Optional[Dict[str, str]]) -> Dict[str, Any] | None:
+def ensure_admin_authorized(headers: Optional[Dict[str, str]]) -> Union[Dict[str, Any], None]:
     token = get_admin_token(headers)
     if not token:
         return None

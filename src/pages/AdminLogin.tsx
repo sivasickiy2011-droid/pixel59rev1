@@ -27,8 +27,13 @@ const AdminLogin = () => {
       });
 
       if (response.ok) {
-        await response.json(); // eslint-disable-line @typescript-eslint/no-unused-vars
-        localStorage.setItem('admin_auth', password);
+        const data = await response.json();
+        const accessToken = data?.tokens?.access_token || data?.token;
+        if (!accessToken) {
+          setError('Сервер не вернул токен доступа');
+          return;
+        }
+        localStorage.setItem('admin_auth', accessToken);
         localStorage.setItem('admin_auth_time', Date.now().toString());
         navigate('/admin/bots');
       } else {
@@ -57,12 +62,23 @@ const AdminLogin = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
+              <Input
+                id="username"
+                type="text"
+                autoComplete="username"
+                value="admin"
+                readOnly
+                tabIndex={-1}
+                aria-hidden="true"
+                className="absolute left-[-9999px] h-0 w-0 opacity-0"
+              />
               <Label htmlFor="password" className="text-gray-300">
                 Пароль администратора
               </Label>
               <Input
                 id="password"
                 type="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Введите пароль"

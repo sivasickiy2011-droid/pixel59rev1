@@ -11,8 +11,9 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
-# Добавляем путь к backend для импорта shared модулей
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'backend'))
+# Добавляем корень проекта, чтобы backend импортировался как пакет
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, root_dir)
 
 # Установка DATABASE_URL если не задана
 if not os.environ.get('DATABASE_URL'):
@@ -135,12 +136,14 @@ async def invoke_handler(func_name, request: Request):
         }
     
     # Получить тело запроса
-    body_data = {}
-    if request.method in ["POST", "PUT", "PATCH"]:
+    body_data = None
+    if request.method in ["POST", "PUT", "PATCH", "DELETE"]:
         try:
             body_data = await request.json()
-        except:
-            body_data = {}
+        except Exception:
+            body_data = None
+    if request.method == "DELETE" and body_data:
+        print(f"[GATEVEY] DELETE payload for {func_name}: {body_data}")
     
     event = create_lambda_event(request, body_data)
     

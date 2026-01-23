@@ -68,15 +68,24 @@ export const PortfolioPreview = ({
       
       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 overflow-auto">
         {mainImageUrl ? (
-          <div style={getPreviewDimensions(viewMode)} className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+          <div style={getPreviewDimensions(viewMode)} className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden relative">
             {isPdf ? (
-              <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-800 p-4">
-                <Icon name="FileText" size={64} className="text-gray-400 mb-4" />
-                <h3 className="text-xl font-semibold mb-2">PDF Документ</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">Этот файл не может быть отображён в предпросмотре</p>
-                <a href={mainImageUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
-                  Открыть PDF в новой вкладке
-                </a>
+              <div className="w-full h-full bg-gray-100 dark:bg-gray-800">
+                <iframe
+                  src={mainImageUrl}
+                  title="PDF Preview"
+                  className="w-full h-full"
+                />
+                <div className="absolute bottom-3 right-3">
+                  <a
+                    href={mainImageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs"
+                  >
+                    Открыть PDF
+                  </a>
+                </div>
               </div>
             ) : (
               <img

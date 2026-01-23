@@ -9,7 +9,7 @@ Returns: HTTP response dict with statusCode, headers, body
 import json
 import os
 import psycopg2
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from datetime import datetime
 
 from backend._shared.logging import log_event
@@ -216,7 +216,7 @@ def delete_news(news_id: int) -> bool:
     finally:
         conn.close()
 
-def require_admin(event: Dict[str, Any]) -> Dict[str, Any] | None:
+def require_admin(event: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     payload = ensure_admin_authorized(event.get('headers'))
     if not payload:
         return None

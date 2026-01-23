@@ -16,6 +16,8 @@ export const PortfolioMainImages = ({
   onUploadImage,
   onRemoveImage,
 }: PortfolioMainImagesProps) => {
+  const isPdfUrl = (url?: string) => url?.toLowerCase().endsWith('.pdf') || url?.includes('application/pdf');
+
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-900/50">
       <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
@@ -32,7 +34,7 @@ export const PortfolioMainImages = ({
           <div className="flex gap-2">
             <Input
               type="file"
-              accept="image/*"
+              accept="image/*,.pdf"
               disabled={isUploading}
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -54,7 +56,16 @@ export const PortfolioMainImages = ({
           </div>
           {project.image_url && (
             <div className="mt-2 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 relative group">
-              <img src={project.image_url} alt="Main" className="w-full h-40 object-cover" />
+              {isPdfUrl(project.image_url) ? (
+                <div className="w-full h-40 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                  <div className="text-center">
+                    <Icon name="FileText" size={36} className="mx-auto text-gray-400" />
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">PDF документ</p>
+                  </div>
+                </div>
+              ) : (
+                <img src={project.image_url} alt="Main" className="w-full h-40 object-cover" />
+              )}
             </div>
           )}
         </div>
@@ -67,7 +78,7 @@ export const PortfolioMainImages = ({
           <div className="flex gap-2">
             <Input
               type="file"
-              accept="image/*"
+              accept="image/*,.pdf"
               disabled={isUploading}
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -89,7 +100,13 @@ export const PortfolioMainImages = ({
           </div>
           {project.preview_image_url && (
             <div className="mt-2 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-              <img src={project.preview_image_url} alt="Preview" className="w-full h-24 object-cover" />
+              {isPdfUrl(project.preview_image_url) ? (
+                <div className="w-full h-24 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                  <Icon name="FileText" size={24} className="text-gray-400" />
+                </div>
+              ) : (
+                <img src={project.preview_image_url} alt="Preview" className="w-full h-24 object-cover" />
+              )}
             </div>
           )}
         </div>
@@ -102,7 +119,7 @@ export const PortfolioMainImages = ({
           <div className="flex gap-2">
             <Input
               type="file"
-              accept="image/*"
+              accept="image/*,.pdf"
               disabled={isUploading}
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -124,7 +141,13 @@ export const PortfolioMainImages = ({
           </div>
           {project.carousel_image_url && (
             <div className="mt-2 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-              <img src={project.carousel_image_url} alt="Carousel" className="w-full h-48 object-cover" />
+              {isPdfUrl(project.carousel_image_url) ? (
+                <div className="w-full h-48 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                  <Icon name="FileText" size={32} className="text-gray-400" />
+                </div>
+              ) : (
+                <img src={project.carousel_image_url} alt="Carousel" className="w-full h-48 object-cover" />
+              )}
             </div>
           )}
         </div>

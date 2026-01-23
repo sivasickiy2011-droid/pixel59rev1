@@ -4,6 +4,9 @@
       "name": "Get all partner logos",
       "method": "GET",
       "path": "/",
+      "headers": {
+        "X-Admin-Token": "${ADMIN_TOKEN}"
+      },
       "expectedStatus": 200,
       "expectedBody": [
         {
@@ -16,6 +19,9 @@
       "name": "Create new partner logo",
       "method": "POST",
       "path": "/",
+      "headers": {
+        "X-Admin-Token": "${ADMIN_TOKEN}"
+      },
       "body": {
         "name": "Test Partner",
         "logo_url": "https://example.com/logo.png",

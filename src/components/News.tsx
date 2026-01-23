@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Icon from '@/components/ui/icon';
+import API_ENDPOINTS from '@/config/api';
 
 interface NewsItem {
   title: string;
@@ -27,7 +28,7 @@ const News = () => {
     const fetchNews = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/265f74c3-c0a3-4d44-b005-9119dff641cf');
+        const response = await fetch(API_ENDPOINTS.news.feed);
         const data = await response.json();
         
         if (data.news && Array.isArray(data.news)) {

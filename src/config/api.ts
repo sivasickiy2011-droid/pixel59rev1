@@ -29,6 +29,11 @@ export const API_ENDPOINTS = {
     analyze: `${API_BASE_URL}/seo/analyze`,
     apply: `${API_BASE_URL}/seo/apply`,
   },
+  news: {
+    feed: `${API_BASE_URL}/265f74c3-c0a3-4d44-b005-9119dff641cf`,
+    adminRefresh: `${API_BASE_URL}/7aa533b8-b464-4b36-bd36-9c34cb6d0b8e`,
+    adminCrud: `${API_BASE_URL}/c5a1b2d3-e4f5-6789-abcd-ef0123456789`,
+  },
   upload: {
     logo: `${API_BASE_URL}/upload/logo`,
     image: `${API_BASE_URL}/upload/image`,

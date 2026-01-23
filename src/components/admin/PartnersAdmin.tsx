@@ -5,6 +5,7 @@ import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import PartnerForm from './PartnerForm';
 import PartnerCard from './PartnerCard';
+import { requireAdminAuthHeaders } from '@/utils/adminAuth';
 
 interface PartnerLogo {
   id: number;
@@ -39,10 +40,22 @@ const PartnersAdmin = () => {
 
   const fetchPartners = async () => {
     try {
-      const response = await fetch('/api/c7b03587-cdba-48a4-ac48-9aa2775ff9a0');
+      const response = await fetch('/api/c7b03587-cdba-48a4-ac48-9aa2775ff9a0', {
+        headers: requireAdminAuthHeaders(),
+      });
       if (response.ok) {
         const data = await response.json();
-        setPartners(data);
+        if (Array.isArray(data)) {
+          setPartners(data);
+        } else {
+          console.error('Unexpected partners payload', data);
+          toast({
+            title: 'Ошибка',
+            description: 'Сервер вернул некорректный список партнёров',
+            variant: 'destructive'
+          });
+          setPartners([]);
+        }
       }
     } catch (error) {
       toast({
@@ -61,7 +74,7 @@ const PartnersAdmin = () => {
     try {
       const response = await fetch('/api/c7b03587-cdba-48a4-ac48-9aa2775ff9a0', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: requireAdminAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(formData)
       });
 
@@ -96,7 +109,7 @@ const PartnersAdmin = () => {
 
       const response = await fetch('/api/c7b03587-cdba-48a4-ac48-9aa2775ff9a0', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: requireAdminAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(partner)
       });
 
@@ -122,7 +135,8 @@ const PartnersAdmin = () => {
 
     try {
       const response = await fetch(`/api/c7b03587-cdba-48a4-ac48-9aa2775ff9a0?id=${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: requireAdminAuthHeaders({ 'Content-Type': 'application/json' })
       });
 
       if (response.ok) {

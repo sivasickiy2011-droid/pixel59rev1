@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Icon from '@/components/ui/icon';
 import AdminLayout from '@/components/AdminLayout';
+import { requireAdminAuthHeaders } from '@/utils/adminAuth';
 
 interface Service {
   id: number;
@@ -45,11 +46,13 @@ const ServicesAdmin = ({ isEmbedded = false }: ServicesAdminProps) => {
 
   const loadServices = async () => {
     try {
-      const response = await fetch('/api/91a16400-6baa-4748-9387-c7cdad64ce9c');
+      const response = await fetch('/api/91a16400-6baa-4748-9387-c7cdad64ce9c', {
+        headers: requireAdminAuthHeaders()
+      });
 
       if (response.ok) {
         const data = await response.json();
-        setServices(data.services);
+        setServices(Array.isArray(data.services) ? data.services : []);
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Не удалось загрузить услуги');
@@ -69,9 +72,7 @@ const ServicesAdmin = ({ isEmbedded = false }: ServicesAdminProps) => {
       
       const response = await fetch('/api/91a16400-6baa-4748-9387-c7cdad64ce9c', {
         method,
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: requireAdminAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(editingService)
       });
 
@@ -94,9 +95,7 @@ const ServicesAdmin = ({ isEmbedded = false }: ServicesAdminProps) => {
     try {
       const response = await fetch('/api/91a16400-6baa-4748-9387-c7cdad64ce9c', {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: requireAdminAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ service_id: serviceId })
       });
 
@@ -115,9 +114,7 @@ const ServicesAdmin = ({ isEmbedded = false }: ServicesAdminProps) => {
     try {
       const response = await fetch('/api/91a16400-6baa-4748-9387-c7cdad64ce9c', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: requireAdminAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           service_id: service.service_id,
           is_active: !service.is_active

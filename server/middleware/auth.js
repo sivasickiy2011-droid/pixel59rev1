@@ -38,6 +38,13 @@ const generateToken = (payload, expiresIn = '7d') => {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn });
 };
 
+const decodeAdminToken = (token) => {
+  if (!token) {
+    throw new Error('Token required');
+  }
+  return jwt.verify(token, process.env.JWT_SECRET);
+};
+
 const hashPassword = async (password) => {
   return await bcrypt.hash(password, 10);
 };
@@ -50,6 +57,7 @@ module.exports = {
   verifyAdminToken,
   verifyPartnerToken,
   generateToken,
+  decodeAdminToken,
   hashPassword,
   comparePassword,
 };

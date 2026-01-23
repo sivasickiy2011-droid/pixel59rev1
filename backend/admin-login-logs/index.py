@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import psycopg2
 import redis
 
-from backend.token_utils import verify_jwt
+from backend._shared.security import ensure_admin_authorized
 
 MAX_LIMIT = 100
 CACHE_TTL_SECONDS = 30
@@ -186,13 +186,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if latency_ms > SLOW_QUERY_THRESHOLD_MS:
             print(f"[WARN] Health check slow: {latency_ms:.2f} ms")
         return json_response(200, {'status': 'ok', 'db_latency_ms': latency_ms})
-    auth_header = headers.get('authorization', '')
-    if not auth_header.startswith('Bearer '):
+    payload = ensure_admin_authorized(headers)
+    if not payload:
         return json_response(401, {'error': 'Authorization required'})
-    token = auth_header.split(' ', 1)[1]
-    secret = os.environ.get('JWT_SECRET', '')
-    if not verify_jwt(token, secret):
-        return json_response(401, {'error': 'Invalid token'})
     params = event.get('queryStringParameters') or {}
     limit = min(int(params.get('limit') or 50), MAX_LIMIT)
     offset = max(int(params.get('offset') or 0), 0)

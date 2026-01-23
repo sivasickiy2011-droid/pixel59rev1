@@ -1,7 +1,18 @@
 import json
 import os
 import psycopg2
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+
+from backend._shared.security import ensure_admin_authorized, enforce_rate_limit
+
+
+def require_admin(event: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    payload = ensure_admin_authorized(event.get('headers'))
+    if not payload:
+        return None
+    if enforce_rate_limit('admin-partner-logos', event, limit=40, window_seconds=60):
+        raise ValueError('rate_limit')
+    return payload
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
@@ -24,6 +35,29 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
+    try:
+        auth_payload = require_admin(event)
+        if not auth_payload:
+            return {
+                'statusCode': 401,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({'error': 'Unauthorized'}),
+                'isBase64Encoded': False
+            }
+    except ValueError:
+        return {
+            'statusCode': 429,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': 'Too many requests'}),
+            'isBase64Encoded': False
+        }
+
     database_url = os.environ.get('DATABASE_URL')
     if not database_url:
         return {
@@ -41,9 +75,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     if method == 'GET':
         cur.execute('''
-            SELECT id, name, logo_url, website_url, display_order, is_active, created_at, updated_at
-            FROM t_p26695620_cav_bitrix_portfolio.partner_logos
-            ORDER BY display_order ASC
+            SELECT id, name, logo_url, website, sort_order, is_active, created_at
+            FROM partners
+            ORDER BY sort_order ASC
         ''')
         rows = cur.fetchall()
         
@@ -56,8 +90,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'website_url': row[3],
                 'display_order': row[4],
                 'is_active': row[5],
-                'created_at': row[6].isoformat() if row[6] else None,
-                'updated_at': row[7].isoformat() if row[7] else None
+                'created_at': row[6].isoformat() if row[6] else None
             })
         
         cur.close()
@@ -95,10 +128,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         cur.execute('''
-            INSERT INTO t_p26695620_cav_bitrix_portfolio.partner_logos 
-            (name, logo_url, website_url, display_order, is_active)
+            INSERT INTO partners
+            (name, logo_url, website, sort_order, is_active)
             VALUES (%s, %s, %s, %s, %s)
-            RETURNING id, name, logo_url, website_url, display_order, is_active, created_at, updated_at
+            RETURNING id, name, logo_url, website, sort_order, is_active, created_at
         ''', (name, logo_url, website_url, display_order, is_active))
         
         row = cur.fetchone()
@@ -111,8 +144,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'website_url': row[3],
             'display_order': row[4],
             'is_active': row[5],
-            'created_at': row[6].isoformat() if row[6] else None,
-            'updated_at': row[7].isoformat() if row[7] else None
+            'created_at': row[6].isoformat() if row[6] else None
         }
         
         cur.close()
@@ -155,23 +187,21 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             updates.append('logo_url = %s')
             values.append(body['logo_url'])
         if 'website_url' in body:
-            updates.append('website_url = %s')
+            updates.append('website = %s')
             values.append(body['website_url'])
         if 'display_order' in body:
-            updates.append('display_order = %s')
+            updates.append('sort_order = %s')
             values.append(body['display_order'])
         if 'is_active' in body:
             updates.append('is_active = %s')
             values.append(body['is_active'])
-        
-        updates.append('updated_at = CURRENT_TIMESTAMP')
         values.append(partner_id)
         
         query = f'''
-            UPDATE t_p26695620_cav_bitrix_portfolio.partner_logos
+            UPDATE partners
             SET {', '.join(updates)}
             WHERE id = %s
-            RETURNING id, name, logo_url, website_url, display_order, is_active, created_at, updated_at
+            RETURNING id, name, logo_url, website, sort_order, is_active, created_at
         '''
         
         cur.execute(query, values)
@@ -198,8 +228,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'website_url': row[3],
             'display_order': row[4],
             'is_active': row[5],
-            'created_at': row[6].isoformat() if row[6] else None,
-            'updated_at': row[7].isoformat() if row[7] else None
+            'created_at': row[6].isoformat() if row[6] else None
         }
         
         cur.close()
@@ -233,7 +262,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         cur.execute('''
-            DELETE FROM t_p26695620_cav_bitrix_portfolio.partner_logos
+            DELETE FROM partners
             WHERE id = %s
             RETURNING id
         ''', (partner_id,))

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ShieldCheck, Users, Mail, Phone, Search, Filter, X, FileSpreadsheet, FileText } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import AdminLayout from '@/components/AdminLayout';
+import { requireAdminAuthHeaders } from '@/utils/adminAuth';
 
 interface Consent {
   id: number;
@@ -30,17 +31,24 @@ const ConsentAdmin = () => {
   const { data, isLoading } = useQuery<ConsentResponse>({
     queryKey: ['consents'],
     queryFn: async () => {
-      const response = await fetch('/api/80536dd3-4799-47a9-893a-a756a259460e');
+      const response = await fetch('/api/80536dd3-4799-47a9-893a-a756a259460e', {
+        headers: requireAdminAuthHeaders()
+      });
       if (!response.ok) throw new Error('Failed to fetch consents');
       return response.json();
     },
     refetchInterval: 10000
   });
 
-  const filteredConsents = useMemo(() => {
-    if (!data?.consents) return [];
+  const consentList = useMemo(() => {
+    if (!Array.isArray(data?.consents)) return [];
+    return data.consents;
+  }, [data?.consents]);
 
-    let filtered = data.consents;
+  const filteredConsents = useMemo(() => {
+    if (!consentList.length) return [];
+
+    let filtered = consentList;
 
     if (filterType !== 'all') {
       filtered = filtered.filter(consent => {
@@ -72,7 +80,7 @@ const ConsentAdmin = () => {
     }
 
     return filtered;
-  }, [data?.consents, searchQuery, filterType]);
+  }, [consentList, searchQuery, filterType]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -156,6 +164,7 @@ const ConsentAdmin = () => {
   const totalConsents = filteredConsents.length;
   const withPhone = filteredConsents.filter(c => c.phone).length;
   const withEmail = filteredConsents.filter(c => c.email).length;
+  const totalFetched = consentList.length;
 
   return (
     <AdminLayout>
@@ -204,8 +213,8 @@ const ConsentAdmin = () => {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center gap-4">
                 <CardTitle className="text-xl text-white">Список согласий</CardTitle>
-                <div className="text-sm text-gray-400">
-                  Показано: {totalConsents} {data?.consents.length !== totalConsents && `из ${data?.consents.length || 0}`}
+                  <div className="text-sm text-gray-400">
+                  Показано: {totalConsents} {totalFetched !== totalConsents && `из ${totalFetched}`}
                 </div>
               </div>
               <div className="flex gap-2">
