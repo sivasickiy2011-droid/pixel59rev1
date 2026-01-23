@@ -46,3 +46,4 @@ builds
 # Secrets
 secrets.json
 credentials.json
+.roo/mcp.json
