@@ -10,6 +10,7 @@ interface NewsItem {
   sourceUrl: string;
   date: string;
   image: string;
+  videoEmbedUrl?: string;
   category: string;
   link: string;
 }
@@ -155,7 +156,7 @@ const News = () => {
                         loading="lazy"
                         className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800';
+                          (e.target as HTMLImageElement).src = '/placeholder.svg';
                         }}
                       />
                       
@@ -229,7 +230,7 @@ const News = () => {
                     loading="lazy"
                     className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800';
+                      (e.target as HTMLImageElement).src = '/placeholder.svg';
                     }}
                   />
                   
@@ -318,7 +319,7 @@ const News = () => {
                 loading="lazy"
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200';
+                  (e.target as HTMLImageElement).src = '/placeholder.svg';
                 }}
               />
               
@@ -358,6 +359,19 @@ const News = () => {
               <p className="text-xl text-gradient-start font-semibold dark:[text-shadow:0_2px_10px_rgba(0,0,0,0.4)]">
                 {cleanHtml(selectedNews.excerpt)}
               </p>
+
+              {selectedNews.videoEmbedUrl && (
+                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                  <iframe
+                    src={selectedNews.videoEmbedUrl}
+                    title={selectedNews.title}
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    allowFullScreen
+                    className="absolute top-0 left-0 w-full h-full rounded-lg border-2 border-gray-200 dark:border-gray-700"
+                  />
+                </div>
+              )}
 
               <div className="prose prose-lg max-w-none dark:prose-invert dark:[text-shadow:0_1px_6px_rgba(0,0,0,0.3)]">
                 <div className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">

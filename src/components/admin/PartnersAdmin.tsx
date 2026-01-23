@@ -23,6 +23,7 @@ const PartnersAdmin = () => {
   const [partners, setPartners] = useState<PartnerLogo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [savingId, setSavingId] = useState<number | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const { toast } = useToast();
 
@@ -30,7 +31,6 @@ const PartnersAdmin = () => {
     name: '',
     logo_url: '',
     website_url: '',
-    display_order: 0,
     is_active: true
   });
 
@@ -71,6 +71,65 @@ const PartnersAdmin = () => {
 
 
   const handleAdd = async () => {
+    // Валидация названия
+    if (!formData.name.trim()) {
+      toast({
+        title: 'Ошибка',
+        description: 'Введите название партнёра',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (formData.name.trim().length < 2) {
+      toast({
+        title: 'Ошибка',
+        description: 'Название должно содержать минимум 2 символа',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (formData.name.trim().length > 100) {
+      toast({
+        title: 'Ошибка',
+        description: 'Название не должно превышать 100 символов',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Валидация логотипа
+    if (!formData.logo_url.trim()) {
+      toast({
+        title: 'Ошибка',
+        description: 'Загрузите логотип партнёра',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Валидация URL
+    if (!formData.website_url.trim()) {
+      toast({
+        title: 'Ошибка',
+        description: 'Введите сайт партнёра',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      new URL(formData.website_url);
+    } catch {
+      toast({
+        title: 'Ошибка',
+        description: 'Введите корректный URL (начинается с http:// или https://)',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     try {
       const response = await fetch('/api/c7b03587-cdba-48a4-ac48-9aa2775ff9a0', {
         method: 'POST',
@@ -88,24 +147,92 @@ const PartnersAdmin = () => {
           name: '',
           logo_url: '',
           website_url: '',
-          display_order: 0,
           is_active: true
         });
         fetchPartners();
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Неизвестная ошибка' }));
+        toast({
+          title: 'Ошибка',
+          description: errorData.error || 'Не удалось добавить партнёра',
+          variant: 'destructive'
+        });
       }
     } catch (error) {
+      console.error('Error adding partner:', error);
       toast({
         title: 'Ошибка',
-        description: 'Не удалось добавить партнёра',
+        description: 'Не удалось добавить партнёра. Проверьте соединение.',
         variant: 'destructive'
       });
     }
   };
 
   const handleUpdate = async (id: number) => {
+    setSavingId(id);
+    
     try {
       const partner = partners.find(p => p.id === id);
       if (!partner) return;
+
+      // Валидация названия
+      if (!partner.name.trim()) {
+        toast({
+          title: 'Ошибка',
+          description: 'Введите название партнёра',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      if (partner.name.trim().length < 2) {
+        toast({
+          title: 'Ошибка',
+          description: 'Название должно содержать минимум 2 символа',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      if (partner.name.trim().length > 100) {
+        toast({
+          title: 'Ошибка',
+          description: 'Название не должно превышать 100 символов',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Валидация логотипа
+      if (!partner.logo_url.trim()) {
+        toast({
+          title: 'Ошибка',
+          description: 'Загрузите логотип партнёра',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Валидация URL
+      if (!partner.website_url.trim()) {
+        toast({
+          title: 'Ошибка',
+          description: 'Введите сайт партнёра',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      try {
+        new URL(partner.website_url);
+      } catch {
+        toast({
+          title: 'Ошибка',
+          description: 'Введите корректный URL (начинается с http:// или https://)',
+          variant: 'destructive'
+        });
+        return;
+      }
 
       const response = await fetch('/api/c7b03587-cdba-48a4-ac48-9aa2775ff9a0', {
         method: 'PUT',
@@ -120,18 +247,36 @@ const PartnersAdmin = () => {
         });
         setEditingId(null);
         fetchPartners();
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Неизвестная ошибка' }));
+        toast({
+          title: 'Ошибка',
+          description: errorData.error || 'Не удалось обновить партнёра',
+          variant: 'destructive'
+        });
       }
     } catch (error) {
+      console.error('Error updating partner:', error);
       toast({
         title: 'Ошибка',
-        description: 'Не удалось обновить партнёра',
+        description: 'Не удалось обновить партнёра. Проверьте соединение.',
         variant: 'destructive'
       });
+    } finally {
+      setSavingId(null);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Удалить партнёра?')) return;
+    const partner = partners.find(p => p.id === id);
+    if (!partner) return;
+
+    const confirmMessage = `Вы уверены, что хотите удалить партнёра "${partner.name}"?\n\n` +
+      `Сайт: ${partner.website_url}\n` +
+      `Статус: ${partner.is_active ? 'Активен' : 'Неактивен'}\n\n` +
+      `Это действие нельзя отменить.`;
+
+    if (!confirm(confirmMessage)) return;
 
     try {
       const response = await fetch(`/api/c7b03587-cdba-48a4-ac48-9aa2775ff9a0?id=${id}`, {
@@ -142,14 +287,22 @@ const PartnersAdmin = () => {
       if (response.ok) {
         toast({
           title: 'Успешно',
-          description: 'Партнёр удалён'
+          description: `Партнёр "${partner.name}" удалён`
         });
         fetchPartners();
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Неизвестная ошибка' }));
+        toast({
+          title: 'Ошибка',
+          description: errorData.error || 'Не удалось удалить партнёра',
+          variant: 'destructive'
+        });
       }
     } catch (error) {
+      console.error('Error deleting partner:', error);
       toast({
         title: 'Ошибка',
-        description: 'Не удалось удалить партнёра',
+        description: 'Не удалось удалить партнёра. Проверьте соединение.',
         variant: 'destructive'
       });
     }
@@ -203,6 +356,7 @@ const PartnersAdmin = () => {
             key={partner.id}
             partner={partner}
             isEditing={editingId === partner.id}
+            isSaving={savingId === partner.id}
             onEdit={() => setEditingId(partner.id)}
             onUpdate={updatePartner}
             onSave={() => handleUpdate(partner.id)}

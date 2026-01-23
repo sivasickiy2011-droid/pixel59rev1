@@ -36,7 +36,7 @@ export const API_ENDPOINTS = {
   },
   upload: {
     logo: `${API_BASE_URL}/upload/logo`,
-    image: `${API_BASE_URL}/upload/image`,
+    image: `${API_BASE_URL}/6f0735b1-7477-4660-b2b0-0b694b4f36ea`,
   },
 };
 

@@ -6,6 +6,7 @@ import Promotion from '@/components/Promotion';
 import Services from '@/components/Services';
 // import LeadGeneration from '@/components/LeadGeneration';
 import Portfolio from '@/components/Portfolio';
+import PartnersCarousel from '@/components/PartnersCarousel';
 import FAQ from '@/components/FAQ';
 import Contacts from '@/components/Contacts';
 import Footer from '@/components/Footer';
@@ -28,6 +29,7 @@ const Index = () => {
         <Services />
         <News />
         <Portfolio />
+        <PartnersCarousel />
         <FAQ />
         <Contacts />
       </main>

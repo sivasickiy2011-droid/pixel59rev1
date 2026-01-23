@@ -3,12 +3,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
+import { useImageUpload } from '@/hooks/useImageUpload';
+import { useToast } from '@/hooks/use-toast';
 
 interface PartnerFormData {
   name: string;
   logo_url: string;
   website_url: string;
-  display_order: number;
   is_active: boolean;
 }
 
@@ -25,6 +26,18 @@ const PartnerForm = ({
   onSubmit,
   submitLabel
 }: PartnerFormProps) => {
+  const { uploadImage, isUploading, error: uploadError } = useImageUpload({ folder: 'logos' });
+  const { toast } = useToast();
+
+  const validateUrl = (url: string): boolean => {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
@@ -45,9 +58,22 @@ const PartnerForm = ({
             id="website"
             value={formData.website_url}
             onChange={(e) => onFormDataChange({ ...formData, website_url: e.target.value })}
+            onBlur={(e) => {
+              const value = e.target.value;
+              if (value && !validateUrl(value)) {
+                toast({
+                  title: 'Внимание',
+                  description: 'URL должен начинаться с http:// или https://',
+                  variant: 'destructive'
+                });
+              }
+            }}
             placeholder="https://example.com"
             className="text-black"
           />
+          <p className="text-xs text-gray-500 mt-1">
+            Укажите полный URL с протоколом (http:// или https://)
+          </p>
         </div>
 
         <div className="col-span-2 space-y-3">
@@ -59,19 +85,31 @@ const PartnerForm = ({
           <Input
             type="file"
             accept="image/*"
-            onChange={(e) => {
+            disabled={isUploading}
+            onChange={async (e) => {
               const file = e.target.files?.[0];
               if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                  const dataUri = event.target?.result as string;
-                  onFormDataChange({ ...formData, logo_url: dataUri });
-                };
-                reader.readAsDataURL(file);
+                try {
+                  const url = await uploadImage(file);
+                  onFormDataChange({ ...formData, logo_url: url });
+                } catch (error) {
+                  console.error('Upload failed:', error);
+                }
               }
             }}
             className="text-black"
           />
+
+          {isUploading && (
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gradient-start" />
+              <span>Загрузка изображения...</span>
+            </div>
+          )}
+
+          {uploadError && (
+            <p className="text-sm text-red-600">{uploadError}</p>
+          )}
 
           {formData.logo_url && (
             <div className="mt-2 p-4 border-2 border-gradient-start/20 rounded-lg bg-gradient-to-br from-gray-50 to-white">
@@ -89,15 +127,11 @@ const PartnerForm = ({
           )}
         </div>
 
-        <div>
-          <Label htmlFor="order" className="text-black">Порядок отображения</Label>
-          <Input
-            id="order"
-            type="number"
-            value={formData.display_order}
-            onChange={(e) => onFormDataChange({ ...formData, display_order: parseInt(e.target.value) })}
-            className="text-black"
-          />
+        <div className="col-span-2">
+          <p className="text-sm text-gray-500 italic">
+            Порядок отображения будет назначен автоматически.
+            Вы сможете изменить его при редактировании.
+          </p>
         </div>
 
         <div className="flex items-center space-x-2">

@@ -111,7 +111,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         name = body.get('name')
         logo_url = body.get('logo_url')
         website_url = body.get('website_url')
-        display_order = body.get('display_order', 0)
         is_active = body.get('is_active', True)
         
         if not name or not logo_url or not website_url:
@@ -126,6 +125,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'Name, logo_url and website_url are required'}),
                 'isBase64Encoded': False
             }
+        
+        # Автоматическое вычисление sort_order
+        if 'display_order' not in body or body['display_order'] is None:
+            cur.execute('SELECT COALESCE(MAX(sort_order), 0) + 1 FROM partners')
+            display_order = cur.fetchone()[0]
+        else:
+            display_order = body['display_order']
         
         cur.execute('''
             INSERT INTO partners

@@ -66,11 +66,18 @@ const PartnersCarousel = () => {
                   className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                    const textFallback = document.createElement('div');
-                    textFallback.className = 'text-lg font-bold text-gray-700 dark:text-gray-300';
-                    textFallback.textContent = partner.name;
-                    target.parentElement?.appendChild(textFallback);
+                    // Попробовать загрузить с абсолютным путём
+                    if (!target.src.startsWith('http') && !target.dataset.retried) {
+                      target.dataset.retried = 'true';
+                      target.src = window.location.origin + partner.logo_url;
+                    } else {
+                      // Показать текстовый fallback
+                      target.style.display = 'none';
+                      const textFallback = document.createElement('div');
+                      textFallback.className = 'text-lg font-bold text-gray-700 dark:text-gray-300';
+                      textFallback.textContent = partner.name;
+                      target.parentElement?.appendChild(textFallback);
+                    }
                   }}
                 />
               </a>

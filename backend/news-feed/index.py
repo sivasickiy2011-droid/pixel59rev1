@@ -48,7 +48,7 @@ def fetch_news_from_db(limit: int, offset: int, category: Optional[str], search:
     where = ' AND '.join(clauses)
     query = f"""SELECT id, COALESCE(translated_title, original_title) AS title, COALESCE(translated_excerpt, original_excerpt) AS excerpt,
                       COALESCE(translated_content, original_content) AS content, source, source_url AS sourceUrl,
-                      link, image_url AS image, category, published_date
+                      link, image_url AS image, video_embed_url, category, published_date
                FROM news
                WHERE {where}
                ORDER BY published_date DESC, created_at DESC
@@ -73,6 +73,7 @@ def fetch_news_from_db(limit: int, offset: int, category: Optional[str], search:
             date_str = f"{published.day} {months[published.month]} {published.year}"
 
         source_url_value = row.get('sourceurl') or row.get('sourceUrl') or row.get('source_url')
+        video_embed = row.get('video_embed_url') or ''
         news_item = {
             'id': row['id'],
             'title': row['title'],
@@ -81,7 +82,8 @@ def fetch_news_from_db(limit: int, offset: int, category: Optional[str], search:
             'source': row['source'],
             'sourceUrl': source_url_value,
             'link': row['link'],
-            'image': translate_image(row['image']),
+            'image': translate_image(row['image']) if row.get('image') else '/placeholder.svg',
+            'videoEmbedUrl': video_embed,
             'category': row['category'] or 'Веб-разработка',
             'date': date_str,
             'published_date': row['published_date'].isoformat() if row['published_date'] else None
